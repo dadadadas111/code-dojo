@@ -1,4 +1,6 @@
+import 'dotenv/config';
 import { Client, GatewayIntentBits } from 'discord.js';
+import { env } from './config/env';
 
 const client = new Client({
   intents: [
@@ -45,13 +47,8 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-async function main() {
-  const token = process.env.DISCORD_TOKEN;
-  if (!token) {
-    console.error('[Bot] DISCORD_TOKEN is not set. Check your .env file.');
-    process.exit(1);
-  }
-  await client.login(token);
+async function main(): Promise<void> {
+  await client.login(env.DISCORD_TOKEN);
 }
 
 main().catch((err) => {

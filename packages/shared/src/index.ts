@@ -214,9 +214,7 @@ export const LEVEL_THRESHOLDS: Record<number, { xp: number; title: string }> = {
 };
 
 export function getLevelFromXp(xp: number): { level: number; title: string } {
-  const levels = Object.entries(LEVEL_THRESHOLDS).sort(
-    (a, b) => b[1].xp - a[1].xp,
-  );
+  const levels = Object.entries(LEVEL_THRESHOLDS).sort((a, b) => b[1].xp - a[1].xp);
   for (const [level, data] of levels) {
     if (xp >= data.xp) {
       return { level: Number(level), title: data.title };

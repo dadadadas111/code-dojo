@@ -1,0 +1,9 @@
+# Generated / vendored — never format these
+node_modules
+**/dist
+pnpm-lock.yaml
+docker-data
+
+# Prose docs — not auto-formatted
+docs
+README.md

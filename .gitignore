@@ -37,3 +37,6 @@ coverage/
 *.tgz
 tmp/
 temp/
+
+# Agent tooling
+.claude/

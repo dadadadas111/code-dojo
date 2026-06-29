@@ -1,8 +1,10 @@
-import express from 'express';
+import express, { type Application } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import mongoose from 'mongoose';
+import { redis } from './db/connection';
 
-export async function createServer() {
+export async function createServer(): Promise<Application> {
   const app = express();
 
   // --------------- Middleware ---------------
@@ -11,12 +13,23 @@ export async function createServer() {
   app.use(morgan('dev'));
 
   // --------------- Health Check ---------------
-  app.get('/health', (_req, res) => {
-    res.json({
-      status: 'ok',
+  app.get('/health', async (_req, res) => {
+    const mongoOk = mongoose.connection.readyState === 1;
+    let redisOk = false;
+    try {
+      redisOk = (await redis.ping()) === 'PONG';
+    } catch {
+      redisOk = false;
+    }
+
+    const status = mongoOk && redisOk ? 'ok' : 'degraded';
+    res.status(mongoOk && redisOk ? 200 : 503).json({
+      status,
       service: 'code-dojo-api',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
+      mongo: mongoOk ? 'up' : 'down',
+      redis: redisOk ? 'up' : 'down',
     });
   });
 
@@ -39,12 +52,7 @@ export async function createServer() {
 
   // --------------- Error Handler ---------------
   app.use(
-    (
-      err: Error,
-      _req: express.Request,
-      res: express.Response,
-      _next: express.NextFunction,
-    ) => {
+    (err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
       console.error('[API] Unhandled error:', err);
       res.status(500).json({
         success: false,

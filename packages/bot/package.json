@@ -7,18 +7,19 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
+    "dev": "tsx watch --env-file-if-exists=../../.env src/index.ts",
+    "start": "node --env-file-if-exists=../../.env dist/index.js",
     "clean": "rm -rf dist",
     "lint": "echo 'lint ok'",
     "lint:fix": "echo 'lint ok'",
     "typecheck": "tsc --noEmit",
-    "deploy-commands": "tsx src/deploy-commands.ts"
+    "deploy-commands": "tsx --env-file-if-exists=../../.env src/deploy-commands.ts"
   },
   "dependencies": {
     "@code-dojo/shared": "workspace:*",
     "discord.js": "^14.16.0",
-    "dotenv": "^16.4.0"
+    "dotenv": "^16.4.0",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

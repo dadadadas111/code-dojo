@@ -16,9 +16,9 @@
 | 0.3 | Shared types package (`@code-dojo/shared`) | ✅ Done |
 | 0.4 | API skeleton (Express + health check) | ✅ Done |
 | 0.5 | Bot skeleton (discord.js + ping command) | ✅ Done |
-| 0.6 | Environment config (.env + validation) | ⬜ |
-| 0.7 | Database connection + Mongoose setup | ⬜ |
-| 0.8 | CI placeholder (.github/workflows) | ⬜ |
+| 0.6 | Environment config (.env + validation) | ✅ Done |
+| 0.7 | Database connection + Mongoose setup | ✅ Done |
+| 0.8 | CI placeholder (.github/workflows) | ✅ Done |
 
 **Deliverable:** `pnpm dev` starts both API and Bot. `/ping` works in Discord.
 

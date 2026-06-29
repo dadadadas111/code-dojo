@@ -1,15 +1,35 @@
+import 'dotenv/config';
 import { createServer } from './app';
+import { env } from './config/env';
+import { connectMongo, connectRedis, disconnectAll } from './db/connection';
 
-const PORT = process.env.API_PORT ? parseInt(process.env.API_PORT, 10) : 3000;
-const HOST = process.env.API_HOST || '0.0.0.0';
+async function main(): Promise<void> {
+  await connectMongo();
+  await connectRedis();
 
-async function main() {
   const app = await createServer();
 
-  app.listen(PORT, HOST, () => {
-    console.log(`[API] Code Dojo API running at http://${HOST}:${PORT}`);
-    console.log(`[API] Environment: ${process.env.NODE_ENV || 'development'}`);
+  const server = app.listen(env.API_PORT, env.API_HOST, () => {
+    console.log(`[API] Code Dojo API running at http://${env.API_HOST}:${env.API_PORT}`);
+    console.log(`[API] Environment: ${env.NODE_ENV}`);
   });
+
+  const shutdown = async (signal: string): Promise<void> => {
+    console.log(`[API] ${signal} received, shutting down...`);
+    try {
+      await new Promise<void>((resolve, reject) =>
+        server.close((err) => (err ? reject(err) : resolve())),
+      );
+      await disconnectAll();
+      process.exit(0);
+    } catch (err) {
+      console.error('[API] Error during shutdown:', err);
+      process.exit(1);
+    }
+  };
+
+  process.on('SIGINT', () => void shutdown('SIGINT'));
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
 }
 
 main().catch((err) => {
