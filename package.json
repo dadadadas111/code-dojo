@@ -1,0 +1,30 @@
+{
+  "name": "code-dojo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Gamified Learning Management System for programming classes — Discord-first, API-driven",
+  "author": "Code Dojo Team",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "pnpm --parallel -r dev",
+    "dev:api": "pnpm --filter @code-dojo/api dev",
+    "dev:bot": "pnpm --filter @code-dojo/bot dev",
+    "build": "pnpm -r build",
+    "build:api": "pnpm --filter @code-dojo/api build",
+    "build:bot": "pnpm --filter @code-dojo/bot build",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "format": "prettier --write \"**/*.{ts,js,json,md,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md,yaml}\"",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r clean",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
