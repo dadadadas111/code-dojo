@@ -4,6 +4,8 @@ const envSchema = z.object({
   DISCORD_TOKEN: z.string().min(1),
   DISCORD_CLIENT_ID: z.string().optional(),
   DISCORD_GUILD_ID: z.string().optional(),
+  API_URL: z.string().url(),
+  API_KEY: z.string().min(16),
 });
 
 export type Env = z.infer<typeof envSchema>;

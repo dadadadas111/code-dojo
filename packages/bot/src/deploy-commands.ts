@@ -1,19 +1,13 @@
 import 'dotenv/config';
-import { REST, Routes, SlashCommandBuilder } from 'discord.js';
+import { REST, Routes } from 'discord.js';
 import { env } from './config/env';
+import { commands } from './commands/index';
 
 /**
  * Register slash commands with Discord.
  * Run: pnpm --filter @code-dojo/bot deploy-commands
  */
-const commands = [
-  new SlashCommandBuilder().setName('ping').setDescription('Kiểm tra bot còn sống không'),
-
-  // TODO: Add all production commands here
-  // new SlashCommandBuilder().setName('profile').setDescription('Xem hồ sơ học sinh'),
-  // new SlashCommandBuilder().setName('homework').setDescription('Xem danh sách bài tập'),
-  // new SlashCommandBuilder().setName('submit').setDescription('Nộp bài tập')...
-].map((cmd) => cmd.toJSON());
+const commandsJson = [...commands.values()].map((cmd) => cmd.data.toJSON());
 
 async function deploy(): Promise<void> {
   if (!env.DISCORD_CLIENT_ID) {
@@ -23,17 +17,17 @@ async function deploy(): Promise<void> {
 
   const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN);
 
-  console.log(`[Deploy] Registering ${commands.length} commands...`);
+  console.log(`[Deploy] Registering ${commandsJson.length} commands...`);
 
   if (env.DISCORD_GUILD_ID) {
     // Guild-specific (instant updates — use for development)
     await rest.put(Routes.applicationGuildCommands(env.DISCORD_CLIENT_ID, env.DISCORD_GUILD_ID), {
-      body: commands,
+      body: commandsJson,
     });
     console.log(`[Deploy] Registered to guild ${env.DISCORD_GUILD_ID}`);
   } else {
     // Global (takes up to 1 hour to propagate)
-    await rest.put(Routes.applicationCommands(env.DISCORD_CLIENT_ID), { body: commands });
+    await rest.put(Routes.applicationCommands(env.DISCORD_CLIENT_ID), { body: commandsJson });
     console.log('[Deploy] Registered globally (may take up to 1 hour)');
   }
 

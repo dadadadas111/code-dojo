@@ -4,6 +4,7 @@ const envSchema = z.object({
   MONGODB_URI: z.string().min(1),
   REDIS_URL: z.string().min(1),
   JWT_SECRET: z.string().min(1),
+  API_KEY: z.string().min(16),
   API_PORT: z.coerce.number().default(3000),
   API_HOST: z.string().default('0.0.0.0'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),

@@ -32,14 +32,14 @@
 
 | # | Task | Status |
 |---|------|--------|
-| 1.1 | `Student` Mongoose model + validation | ⬜ |
-| 1.2 | `POST /api/students` — Register | ⬜ |
-| 1.3 | `GET /api/students/:id` — Profile | ⬜ |
-| 1.4 | `GET /api/students` — List (paginated) | ⬜ |
-| 1.5 | `PATCH /api/students/:id` — Update | ⬜ |
-| 1.6 | `/register` slash command (Discord → API) | ⬜ |
-| 1.7 | `/profile` slash command (embed display) | ⬜ |
-| 1.8 | Discord ID ↔ Student linking | ⬜ |
+| 1.1 | `Student` Mongoose model + validation | ✅ Done |
+| 1.2 | `POST /api/students` — Register | ✅ Done |
+| 1.3 | `GET /api/students/:id` — Profile | ✅ Done |
+| 1.4 | `GET /api/students` — List (paginated) | ✅ Done |
+| 1.5 | `PATCH /api/students/:id` — Update | ✅ Done |
+| 1.6 | `/register` slash command (Discord → API) | ✅ Done |
+| 1.7 | `/profile` slash command (embed display) | ✅ Done |
+| 1.8 | Discord ID ↔ Student linking | ✅ Done |
 
 **Deliverable:** `/register` creates student. `/profile` shows XP/Level/Coins.
 

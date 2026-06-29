@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { env } from './config/env';
+import { commands } from './commands/index';
 
 const client = new Client({
   intents: [
@@ -19,20 +20,18 @@ client.once('ready', () => {
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
-  // TODO: Route to command handlers
   const { commandName } = interaction;
+  const command = commands.get(commandName);
 
   try {
-    switch (commandName) {
-      case 'ping':
-        await interaction.reply({ content: 'Pong! 🏓', ephemeral: true });
-        break;
-      default:
-        await interaction.reply({
-          content: `Command \`/${commandName}\` is registered but not yet implemented.`,
-          ephemeral: true,
-        });
+    if (!command) {
+      await interaction.reply({
+        content: `Command \`/${commandName}\` is registered but not yet implemented.`,
+        ephemeral: true,
+      });
+      return;
     }
+    await command.execute(interaction);
   } catch (error) {
     console.error(`[Bot] Error handling /${commandName}:`, error);
     const reply = {

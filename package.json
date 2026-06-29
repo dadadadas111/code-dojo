@@ -17,6 +17,7 @@
     "format": "prettier --write \"**/*.{ts,js,json,md,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,md,yaml}\"",
     "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
     "clean": "pnpm -r clean",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
