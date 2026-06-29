@@ -53,12 +53,12 @@
 
 | # | Task | Status |
 |---|------|--------|
-| 2.1 | `Course` + `Lesson` Mongoose models | ⬜ |
-| 2.2 | Course CRUD API | ⬜ |
-| 2.3 | Lesson CRUD API | ⬜ |
-| 2.4 | `/lesson` slash command (view today/next lesson) | ⬜ |
-| 2.5 | `/schedule` slash command (course calendar) | ⬜ |
-| 2.6 | Teacher-only permissions (Discord roles → API auth) | ⬜ |
+| 2.1 | `Course` + `Lesson` Mongoose models | ✅ Done |
+| 2.2 | Course CRUD API | ✅ Done |
+| 2.3 | Lesson CRUD API | ✅ Done |
+| 2.4 | `/lesson` slash command (view today/next lesson) | ✅ Done |
+| 2.5 | `/schedule` slash command (course calendar) | ✅ Done |
+| 2.6 | Teacher-only permissions (Discord roles → API auth) | ✅ Done |
 
 **Deliverable:** Teacher creates course → adds lessons → students view schedule.
 

@@ -7,6 +7,9 @@ import { redis } from './db/connection';
 import { AppError } from './errors';
 import { requireApiKey } from './middleware/auth.middleware';
 import { studentRouter } from './routes/student.routes';
+import { courseRouter } from './routes/course.routes';
+import { lessonRouter } from './routes/lesson.routes';
+import { lessonHelperRouter } from './routes/lesson-helper.routes';
 import { env } from './config/env';
 
 export async function createServer(): Promise<Application> {
@@ -43,8 +46,9 @@ export async function createServer(): Promise<Application> {
 
   // --------------- API Routes ---------------
   app.use('/api/students', studentRouter);
-  // app.use('/api/courses', courseRouter);
-  // app.use('/api/lessons', lessonRouter);
+  app.use('/api/courses', courseRouter);
+  app.use('/api/courses/:courseId/lessons', lessonRouter);
+  app.use('/api/lessons', lessonHelperRouter);
   // app.use('/api/homework', homeworkRouter);
   // app.use('/api/submissions', submissionRouter);
   // app.use('/api/attendance', attendanceRouter);

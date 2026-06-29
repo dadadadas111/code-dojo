@@ -6,6 +6,7 @@ const envSchema = z.object({
   DISCORD_GUILD_ID: z.string().optional(),
   API_URL: z.string().url(),
   API_KEY: z.string().min(16),
+  TEACHER_ROLE_ID: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;
