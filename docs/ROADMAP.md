@@ -93,11 +93,11 @@
 
 | # | Task | Status |
 |---|------|--------|
-| 4.1 | `Attendance` Mongoose model | ⬜ |
-| 4.2 | Attendance API (mark, list, stats) | ⬜ |
-| 4.3 | `/checkin` slash command | ⬜ |
-| 4.4 | `/attendance` command (view history) | ⬜ |
-| 4.5 | Attendance summary embed (per lesson, per student) | ⬜ |
+| 4.1 | `Attendance` Mongoose model | ✅ Done |
+| 4.2 | Attendance API (mark, list, stats) | ✅ Done |
+| 4.3 | `/checkin` slash command | ✅ Done |
+| 4.4 | `/attendance` command (view history) | ✅ Done |
+| 4.5 | Attendance summary embed (per lesson, per student) | ✅ Done |
 
 **Deliverable:** `/checkin` marks attendance. Teacher sees who's present/absent.
 

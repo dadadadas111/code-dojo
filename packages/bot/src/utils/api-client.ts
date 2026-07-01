@@ -1,4 +1,6 @@
 import type {
+  Attendance,
+  AttendanceStatus,
   Course,
   Homework,
   HomeworkType,
@@ -210,4 +212,38 @@ export interface ResubmitSubmissionInput {
 export async function resubmitSubmission(input: ResubmitSubmissionInput): Promise<Submission> {
   const { id, ...body } = input;
   return request<Submission>('PATCH', `/api/submissions/${id}/resubmit`, body);
+}
+
+// ---- Attendance ----
+
+export async function checkin(discordId: string): Promise<Attendance> {
+  return request<Attendance>('POST', '/api/attendance/checkin', { discordId });
+}
+
+export interface LessonAttendance {
+  attendances: Attendance[];
+  stats: { present: number; late: number; absent: number; total: number };
+}
+
+export async function getLessonAttendance(lessonId: string): Promise<LessonAttendance> {
+  return request<LessonAttendance>('GET', `/api/attendance/lesson/${lessonId}`, undefined, {
+    teacher: true,
+  });
+}
+
+export async function markAttendance(
+  lessonId: string,
+  discordId: string,
+  status: AttendanceStatus,
+): Promise<Attendance> {
+  return request<Attendance>(
+    'POST',
+    `/api/attendance/lesson/${lessonId}/mark`,
+    { discordId, status },
+    { teacher: true },
+  );
+}
+
+export async function getMyAttendance(discordId: string): Promise<Attendance[]> {
+  return request<Attendance[]>('GET', `/api/attendance/student/by-discord/${discordId}`);
 }

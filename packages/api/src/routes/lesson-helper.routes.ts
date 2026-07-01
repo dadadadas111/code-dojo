@@ -6,7 +6,10 @@ import {
   type NextFunction,
   type RequestHandler,
 } from 'express';
-import { getNextLessonForActiveCourse } from '../services/lesson.service';
+import {
+  getCurrentLessonForActiveCourse,
+  getNextLessonForActiveCourse,
+} from '../services/lesson.service';
 
 type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
@@ -22,6 +25,14 @@ lessonHelperRouter.get(
   '/next',
   wrap(async (_req, res) => {
     const data = await getNextLessonForActiveCourse();
+    res.json({ success: true, data });
+  }),
+);
+
+lessonHelperRouter.get(
+  '/current',
+  wrap(async (_req, res) => {
+    const data = await getCurrentLessonForActiveCourse();
     res.json({ success: true, data });
   }),
 );

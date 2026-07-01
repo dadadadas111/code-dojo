@@ -17,6 +17,9 @@ import { homeworkCommand } from './homework.command';
 import { submitCommand } from './submit.command';
 import { resubmitCommand } from './resubmit.command';
 import { reviewCommand } from './review.command';
+import { checkinCommand } from './checkin.command';
+import { attendanceCommand } from './attendance.command';
+import { attendanceMarkCommand } from './attendance-mark.command';
 
 export const commands = new Map<string, Command>([
   [pingCommand.data.name, pingCommand],
@@ -31,4 +34,7 @@ export const commands = new Map<string, Command>([
   [submitCommand.data.name, submitCommand],
   [resubmitCommand.data.name, resubmitCommand],
   [reviewCommand.data.name, reviewCommand],
+  [checkinCommand.data.name, checkinCommand],
+  [attendanceCommand.data.name, attendanceCommand],
+  [attendanceMarkCommand.data.name, attendanceMarkCommand],
 ]);

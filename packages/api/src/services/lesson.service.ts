@@ -144,3 +144,75 @@ export async function getNextLessonForActiveCourse(): Promise<Lesson> {
 
   return toLesson(doc);
 }
+
+const ICT_TIME_ZONE = 'Asia/Ho_Chi_Minh';
+
+// Formats `date` as y/m/d/h/m/s components as observed in the given IANA time zone.
+function getZonedParts(
+  date: Date,
+  timeZone: string,
+): { year: number; month: number; day: number; hour: number; minute: number; second: number } {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  });
+  const parts = formatter.formatToParts(date);
+  const get = (type: string): number => Number(parts.find((p) => p.type === type)?.value ?? '0');
+  return {
+    year: get('year'),
+    month: get('month'),
+    day: get('day'),
+    hour: get('hour'),
+    minute: get('minute'),
+    second: get('second'),
+  };
+}
+
+// Computes the UTC instants corresponding to 00:00:00.000 and 23:59:59.999 of `date`'s
+// calendar day *as observed in `timeZone`*. Naive `new Date()` day math uses the server's
+// local TZ, which drifts from ICT — this instead reads the zoned y/m/d, then corrects for
+// the zone's UTC offset (derived by comparing the zoned wall-clock reading to `date` itself).
+function getZonedDayBoundsUtc(date: Date, timeZone: string): { startUtc: Date; endUtc: Date } {
+  const zoned = getZonedParts(date, timeZone);
+  // Wall-clock time in the zone, interpreted as if it were UTC.
+  const asIfUtcMs = Date.UTC(
+    zoned.year,
+    zoned.month - 1,
+    zoned.day,
+    zoned.hour,
+    zoned.minute,
+    zoned.second,
+  );
+  const offsetMs = asIfUtcMs - date.getTime();
+
+  const startAsIfUtc = Date.UTC(zoned.year, zoned.month - 1, zoned.day, 0, 0, 0, 0);
+  const endAsIfUtc = Date.UTC(zoned.year, zoned.month - 1, zoned.day, 23, 59, 59, 999);
+
+  return {
+    startUtc: new Date(startAsIfUtc - offsetMs),
+    endUtc: new Date(endAsIfUtc - offsetMs),
+  };
+}
+
+export async function getCurrentLessonForActiveCourse(): Promise<Lesson> {
+  const course = await getActiveCourse();
+
+  const { startUtc, endUtc } = getZonedDayBoundsUtc(new Date(), ICT_TIME_ZONE);
+
+  const doc = await LessonModel.findOne({
+    courseId: course.id,
+    scheduledDate: { $gte: startUtc, $lte: endUtc },
+  }).sort({ scheduledDate: 1 });
+
+  if (doc === null) {
+    throw new NotFoundError('No lesson scheduled today');
+  }
+
+  return toLesson(doc);
+}
