@@ -72,14 +72,14 @@
 
 | # | Task | Status |
 |---|------|--------|
-| 3.1 | `Homework` Mongoose model | ⬜ |
-| 3.2 | `Submission` Mongoose model | ⬜ |
-| 3.3 | Homework CRUD API | ⬜ |
-| 3.4 | Submission API (create, list, update status) | ⬜ |
-| 3.5 | `/homework` slash command (list + detail) | ⬜ |
-| 3.6 | `/submit` slash command (link + paste) | ⬜ |
-| 3.7 | `/review` slash command (teacher grades) | ⬜ |
-| 3.8 | Submission status flow: pending → grading → accepted/revision/late | ⬜ |
+| 3.1 | `Homework` Mongoose model | ✅ Done |
+| 3.2 | `Submission` Mongoose model | ✅ Done |
+| 3.3 | Homework CRUD API | ✅ Done |
+| 3.4 | Submission API (create, list, update status) | ✅ Done |
+| 3.5 | `/homework` slash command (list + detail) | ✅ Done |
+| 3.6 | `/submit` slash command (link + paste) | ✅ Done |
+| 3.7 | `/review` slash command (teacher grades) | ✅ Done |
+| 3.8 | Submission status flow: pending → grading → accepted/revision/late | ✅ Done |
 
 **Deliverable:** Teacher assigns homework → student submits → teacher reviews.
 

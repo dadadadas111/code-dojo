@@ -1,4 +1,13 @@
-import type { Course, Lesson, PaginatedResponse, Student } from '@code-dojo/shared';
+import type {
+  Course,
+  Homework,
+  HomeworkType,
+  Lesson,
+  PaginatedResponse,
+  Student,
+  Submission,
+  SubmissionStatus,
+} from '@code-dojo/shared';
 import { env } from '../config/env';
 
 export class ApiError extends Error {
@@ -107,4 +116,98 @@ export async function getCourseLessons(courseId: string): Promise<Lesson[]> {
 
 export async function getNextLesson(): Promise<Lesson> {
   return request<Lesson>('GET', '/api/lessons/next');
+}
+
+// ---- Homework ----
+
+export interface CreateHomeworkInput {
+  title: string;
+  description: string;
+  type: HomeworkType;
+  deadline: string;
+  xpReward?: number;
+  coinReward?: number;
+  maxScore?: number;
+  lessonId?: string;
+}
+
+export async function createHomework(
+  courseId: string,
+  input: CreateHomeworkInput,
+): Promise<Homework> {
+  return request<Homework>('POST', `/api/courses/${courseId}/homework`, input, {
+    teacher: true,
+  });
+}
+
+export async function getActiveHomework(): Promise<Homework[]> {
+  const paginated = await request<PaginatedResponse<Homework>>('GET', '/api/homework/active');
+  return paginated.data;
+}
+
+// ---- Submission ----
+
+export interface CreateSubmissionInput {
+  discordId: string;
+  homeworkId: string;
+  content?: string;
+  githubLink?: string;
+  fileUrl?: string;
+}
+
+export async function createSubmission(input: CreateSubmissionInput): Promise<Submission> {
+  return request<Submission>('POST', '/api/submissions', input);
+}
+
+export interface ListSubmissionsQuery {
+  homeworkId?: string;
+  status?: SubmissionStatus;
+  discordId?: string;
+}
+
+export async function listSubmissions(query: ListSubmissionsQuery = {}): Promise<Submission[]> {
+  const params = new URLSearchParams();
+  if (query.homeworkId) params.set('homeworkId', query.homeworkId);
+  if (query.status) params.set('status', query.status);
+  if (query.discordId) params.set('discordId', query.discordId);
+  // Request a high limit so the /review pending list and /homework submitted-map
+  // are not silently truncated by the API's default page size (20).
+  params.set('limit', '100');
+
+  const qs = params.toString();
+  const paginated = await request<PaginatedResponse<Submission>>(
+    'GET',
+    `/api/submissions${qs ? `?${qs}` : ''}`,
+  );
+  return paginated.data;
+}
+
+export async function getSubmissionById(id: string): Promise<Submission> {
+  return request<Submission>('GET', `/api/submissions/${id}`);
+}
+
+export interface GradeSubmissionInput {
+  status: 'grading' | 'accepted' | 'revision';
+  score?: number;
+  feedback?: string;
+}
+
+export async function gradeSubmission(
+  id: string,
+  patch: GradeSubmissionInput,
+): Promise<Submission> {
+  return request<Submission>('PATCH', `/api/submissions/${id}`, patch, { teacher: true });
+}
+
+export interface ResubmitSubmissionInput {
+  id: string;
+  discordId: string;
+  content?: string;
+  githubLink?: string;
+  fileUrl?: string;
+}
+
+export async function resubmitSubmission(input: ResubmitSubmissionInput): Promise<Submission> {
+  const { id, ...body } = input;
+  return request<Submission>('PATCH', `/api/submissions/${id}/resubmit`, body);
 }

@@ -10,6 +10,9 @@ import { studentRouter } from './routes/student.routes';
 import { courseRouter } from './routes/course.routes';
 import { lessonRouter } from './routes/lesson.routes';
 import { lessonHelperRouter } from './routes/lesson-helper.routes';
+import { homeworkRouter } from './routes/homework.routes';
+import { homeworkHelperRouter } from './routes/homework-helper.routes';
+import { submissionRouter } from './routes/submission.routes';
 import { env } from './config/env';
 
 export async function createServer(): Promise<Application> {
@@ -49,8 +52,9 @@ export async function createServer(): Promise<Application> {
   app.use('/api/courses', courseRouter);
   app.use('/api/courses/:courseId/lessons', lessonRouter);
   app.use('/api/lessons', lessonHelperRouter);
-  // app.use('/api/homework', homeworkRouter);
-  // app.use('/api/submissions', submissionRouter);
+  app.use('/api/courses/:courseId/homework', homeworkRouter);
+  app.use('/api/homework', homeworkHelperRouter);
+  app.use('/api/submissions', submissionRouter);
   // app.use('/api/attendance', attendanceRouter);
   // app.use('/api/gamification', gamificationRouter);
   // app.use('/api/shop', shopRouter);
