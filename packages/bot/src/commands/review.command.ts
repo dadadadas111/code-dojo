@@ -4,6 +4,7 @@ import type { Command } from './index';
 import { ApiError, gradeSubmission, listSubmissions } from '../utils/api-client';
 import { isTeacher } from '../utils/permissions';
 import { buildPendingListEmbed, buildSubmissionEmbed } from '../embeds/submission.embed';
+import { announceLevelUp, applyLevelRole } from '../utils/roles';
 
 const GRADE_STATUSES = ['accepted', 'revision', 'grading'] as const;
 type GradeStatus = (typeof GRADE_STATUSES)[number];
@@ -86,7 +87,24 @@ export const reviewCommand: Command = {
       });
 
       const embed = buildSubmissionEmbed(submission);
+
+      if (submission.xp) {
+        embed.addFields({
+          name: 'XP',
+          value: submission.xp.leveledUp
+            ? `+${submission.xp.xpAwarded} XP — Lên cấp ${submission.xp.newLevel} (${submission.xp.newTitle})!`
+            : `+${submission.xp.xpAwarded} XP`,
+          inline: false,
+        });
+      }
+
       await interaction.reply({ embeds: [embed] });
+
+      if (submission.xp?.leveledUp && interaction.guild) {
+        const { discordId, newLevel, newTitle } = submission.xp;
+        await applyLevelRole(interaction.guild, discordId, newLevel);
+        await announceLevelUp(interaction.guild, discordId, newLevel, newTitle);
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 409) {

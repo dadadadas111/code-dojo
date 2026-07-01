@@ -1,10 +1,12 @@
 import mongoose from 'mongoose';
 import type { Attendance, AttendanceStatus } from '@code-dojo/shared';
+import { XP_REWARDS } from '@code-dojo/shared';
 import { AttendanceModel } from '../db/models/attendance.model';
 import { LessonModel } from '../db/models/lesson.model';
 import { ConflictError, NotFoundError } from '../errors';
 import { getStudentByDiscordId } from './student.service';
 import { getCurrentLessonForActiveCourse } from './lesson.service';
+import { awardXp, type XpAward } from './xp.service';
 
 const LATE_GRACE_PERIOD_MS = 10 * 60_000;
 
@@ -12,7 +14,9 @@ function toAttendance(doc: mongoose.Document): Attendance {
   return doc.toJSON() as unknown as Attendance;
 }
 
-export async function checkin(discordId: string): Promise<Attendance> {
+export async function checkin(
+  discordId: string,
+): Promise<{ attendance: Attendance; xp: XpAward | null }> {
   const student = await getStudentByDiscordId(discordId);
   const lesson = await getCurrentLessonForActiveCourse();
 
@@ -22,14 +26,14 @@ export async function checkin(discordId: string): Promise<Attendance> {
       ? 'present'
       : 'late';
 
+  let doc: mongoose.Document;
   try {
-    const doc = await AttendanceModel.create({
+    doc = await AttendanceModel.create({
       lessonId: lesson.id,
       studentId: student.id,
       status,
       checkinTime,
     });
-    return toAttendance(doc);
   } catch (err: unknown) {
     if (
       typeof err === 'object' &&
@@ -41,6 +45,19 @@ export async function checkin(discordId: string): Promise<Attendance> {
     }
     throw err;
   }
+
+  const attendance = toAttendance(doc);
+  // NOTE: the attendance row is committed before awardXp. If awardXp throws, the
+  // check-in persists but no XP is granted, and a retry 409s on the unique index —
+  // i.e. this partial failure is NOT self-healing (single-process MVP trade-off).
+  const xp = await awardXp({
+    studentId: student.id,
+    amount: XP_REWARDS.attend_class,
+    description: 'Điểm danh buổi học',
+    metadata: { lessonId: lesson.id, attendanceId: attendance.id },
+  });
+
+  return { attendance, xp };
 }
 
 export async function markAttendance(

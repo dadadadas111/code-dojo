@@ -43,8 +43,8 @@ attendanceRouter.post(
   validate({ body: checkinBody }),
   wrap(async (req, res) => {
     const { discordId } = req.body as z.infer<typeof checkinBody>;
-    const data = await checkin(discordId);
-    res.status(201).json({ success: true, data });
+    const result = await checkin(discordId);
+    res.status(201).json({ success: true, data: { ...result.attendance, xp: result.xp } });
   }),
 );
 

@@ -15,6 +15,7 @@ import {
   getStudentByDiscordId,
   updateStudent,
 } from '../services/student.service';
+import { listByStudent } from '../services/activitylog.service';
 
 const registerBody = z.object({
   discordId: z.string().min(1),
@@ -91,6 +92,18 @@ studentRouter.patch(
     const data = await updateStudent(
       req.params['id'] as string,
       req.body as z.infer<typeof updateBody>,
+    );
+    res.json({ success: true, data });
+  }),
+);
+
+studentRouter.get(
+  '/:id/activity',
+  validate({ params: idParam, query: paginationQuery }),
+  wrap(async (req, res) => {
+    const data = await listByStudent(
+      req.params['id'] as string,
+      req.query as z.infer<typeof paginationQuery>,
     );
     res.json({ success: true, data });
   }),

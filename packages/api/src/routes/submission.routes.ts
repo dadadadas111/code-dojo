@@ -104,10 +104,10 @@ submissionRouter.patch(
   requireTeacher,
   validate({ params: idParam, body: gradeBody }),
   wrap(async (req, res) => {
-    const data = await gradeSubmission(
+    const result = await gradeSubmission(
       req.params['id'] as string,
       req.body as z.infer<typeof gradeBody>,
     );
-    res.json({ success: true, data });
+    res.json({ success: true, data: { ...result.submission, xp: result.xp } });
   }),
 );

@@ -5,10 +5,13 @@ import type {
   Submission,
   SubmissionStatus,
 } from '@code-dojo/shared';
+import { XP_REWARDS } from '@code-dojo/shared';
 import { SubmissionModel } from '../db/models/submission.model';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../errors';
 import { getStudentByDiscordId } from './student.service';
 import { getHomeworkById } from './homework.service';
+import { hasXpForSubmission } from './activitylog.service';
+import { awardXp, type XpAward } from './xp.service';
 
 const SORTABLE_FIELDS = new Set(['submittedAt']);
 
@@ -82,12 +85,12 @@ export async function createSubmission(input: {
 export async function gradeSubmission(
   id: string,
   patch: { status: 'grading' | 'accepted' | 'revision'; score?: number; feedback?: string },
-): Promise<Submission> {
+): Promise<{ submission: Submission; xp: XpAward | null }> {
   const submission = await getSubmissionById(id);
   assertTransition(submission.status, patch.status);
 
+  const homework = await getHomeworkById(submission.homeworkId);
   if (patch.score !== undefined) {
-    const homework = await getHomeworkById(submission.homeworkId);
     if (patch.score < 0 || patch.score > homework.maxScore) {
       throw new ValidationError(`Score must be between 0 and ${homework.maxScore}`);
     }
@@ -115,8 +118,23 @@ export async function gradeSubmission(
   }
 
   const graded = toSubmission(doc);
-  // TODO(phase-5): emit 'submission.graded' event here
-  return graded;
+
+  let xp: XpAward | null = null;
+  if (graded.status === 'accepted' && !(await hasXpForSubmission(id))) {
+    const early = graded.submittedAt.getTime() <= homework.deadline.getTime();
+    const amount = homework.xpReward + (early ? XP_REWARDS.homework_early : 0);
+    // A homework may carry xpReward 0; only award (and log) when there's XP to give.
+    if (amount > 0) {
+      xp = await awardXp({
+        studentId: graded.studentId,
+        amount,
+        description: `Hoàn thành bài tập: ${homework.title}`,
+        metadata: { submissionId: id, homeworkId: homework.id, early },
+      });
+    }
+  }
+
+  return { submission: graded, xp };
 }
 
 export async function resubmitSubmission(

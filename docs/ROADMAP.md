@@ -111,12 +111,12 @@
 
 | # | Task | Status |
 |---|------|--------|
-| 5.1 | `ActivityLog` Mongoose model (audit trail) | ⬜ |
-| 5.2 | XP calculation engine (from shared constants) | ⬜ |
-| 5.3 | XP awarded on: homework complete, attendance, early submit | ⬜ |
-| 5.4 | Level-up detection + announcement | ⬜ |
-| 5.5 | Discord role auto-assign (Beginner → Coder → ... → Legend) | ⬜ |
-| 5.6 | XP displayed in `/profile` | ⬜ |
+| 5.1 | `ActivityLog` Mongoose model (audit trail) | ✅ Done |
+| 5.2 | XP calculation engine (from shared constants) | ✅ Done |
+| 5.3 | XP awarded on: homework complete, attendance, early submit | ✅ Done |
+| 5.4 | Level-up detection + announcement | ✅ Done |
+| 5.5 | Discord role auto-assign (Beginner → Coder → ... → Legend) | ✅ Done |
+| 5.6 | XP displayed in `/profile` | ✅ Done |
 
 **Deliverable:** Students see XP. Leveling up changes their Discord role.
 

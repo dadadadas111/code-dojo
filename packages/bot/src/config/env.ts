@@ -7,6 +7,10 @@ const envSchema = z.object({
   API_URL: z.string().url(),
   API_KEY: z.string().min(16),
   TEACHER_ROLE_ID: z.string().min(1),
+  // JSON object mapping level -> Discord role ID, e.g. {"1":"roleid","2":"roleid"}.
+  // Never throws on missing/malformed input — parsed safely via levelRoleIds().
+  LEVEL_ROLE_IDS: z.string().optional(),
+  LEVELUP_CHANNEL_ID: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -22,3 +26,21 @@ if (!result.success) {
 }
 
 export const env: Env = result.data;
+
+/**
+ * Parses LEVEL_ROLE_IDS into a level -> roleId map. Tolerates absent or
+ * malformed JSON by returning {} instead of throwing, so gamification
+ * role-sync stays fully optional.
+ */
+export function levelRoleIds(): Record<string, string> {
+  if (!env.LEVEL_ROLE_IDS) return {};
+  try {
+    const parsed: unknown = JSON.parse(env.LEVEL_ROLE_IDS);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as Record<string, string>;
+    }
+    return {};
+  } catch {
+    return {};
+  }
+}

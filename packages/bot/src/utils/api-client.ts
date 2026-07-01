@@ -12,6 +12,15 @@ import type {
 } from '@code-dojo/shared';
 import { env } from '../config/env';
 
+export interface XpAward {
+  xpAwarded: number;
+  newXp: number;
+  leveledUp: boolean;
+  newLevel: number;
+  newTitle: string;
+  discordId: string;
+}
+
 export class ApiError extends Error {
   status: number;
 
@@ -197,8 +206,10 @@ export interface GradeSubmissionInput {
 export async function gradeSubmission(
   id: string,
   patch: GradeSubmissionInput,
-): Promise<Submission> {
-  return request<Submission>('PATCH', `/api/submissions/${id}`, patch, { teacher: true });
+): Promise<Submission & { xp: XpAward | null }> {
+  return request<Submission & { xp: XpAward | null }>('PATCH', `/api/submissions/${id}`, patch, {
+    teacher: true,
+  });
 }
 
 export interface ResubmitSubmissionInput {
@@ -216,8 +227,10 @@ export async function resubmitSubmission(input: ResubmitSubmissionInput): Promis
 
 // ---- Attendance ----
 
-export async function checkin(discordId: string): Promise<Attendance> {
-  return request<Attendance>('POST', '/api/attendance/checkin', { discordId });
+export async function checkin(discordId: string): Promise<Attendance & { xp: XpAward | null }> {
+  return request<Attendance & { xp: XpAward | null }>('POST', '/api/attendance/checkin', {
+    discordId,
+  });
 }
 
 export interface LessonAttendance {
