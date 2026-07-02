@@ -1,6 +1,7 @@
 import { StudentModel } from '../db/models/student.model';
 import { NotFoundError } from '../errors';
 import { recordActivity } from './activitylog.service';
+import { safeZAdd } from './leaderboard.service';
 
 export interface CoinAward {
   coinsAwarded: number;
@@ -30,6 +31,8 @@ export async function awardCoins(input: {
     amount: input.amount,
     metadata: input.metadata ?? {},
   });
+
+  await safeZAdd('coins', student.id, student.coins);
 
   return {
     coinsAwarded: input.amount,

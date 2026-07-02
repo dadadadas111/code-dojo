@@ -2,10 +2,14 @@ import 'dotenv/config';
 import { createServer } from './app';
 import { env } from './config/env';
 import { connectMongo, connectRedis, disconnectAll } from './db/connection';
+import { rebuildLeaderboards } from './services/leaderboard.service';
 
 async function main(): Promise<void> {
   await connectMongo();
   await connectRedis();
+  await rebuildLeaderboards().catch((e: unknown) =>
+    console.error('[Leaderboard] initial rebuild failed', e),
+  );
 
   const app = await createServer();
 

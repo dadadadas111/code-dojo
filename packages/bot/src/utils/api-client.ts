@@ -27,6 +27,20 @@ export interface CoinAward {
   discordId: string;
 }
 
+export interface LeaderboardEntry {
+  rank: number;
+  studentId: string;
+  displayName: string;
+  score: number;
+}
+
+export interface LeaderboardRank {
+  rank: number;
+  score: number;
+  studentId: string;
+  displayName: string;
+}
+
 export class ApiError extends Error {
   status: number;
 
@@ -272,4 +286,29 @@ export async function markAttendance(
 
 export async function getMyAttendance(discordId: string): Promise<Attendance[]> {
   return request<Attendance[]>('GET', `/api/attendance/student/by-discord/${discordId}`);
+}
+
+// ---- Gamification ----
+
+export type LeaderboardMetric = 'xp' | 'coins' | 'streak';
+
+export async function getLeaderboard(
+  metric: LeaderboardMetric,
+  page = 1,
+  limit = 10,
+): Promise<PaginatedResponse<LeaderboardEntry>> {
+  return request<PaginatedResponse<LeaderboardEntry>>(
+    'GET',
+    `/api/gamification/leaderboard/${metric}?page=${page}&limit=${limit}`,
+  );
+}
+
+export async function getLeaderboardRank(
+  metric: LeaderboardMetric,
+  discordId: string,
+): Promise<LeaderboardRank> {
+  return request<LeaderboardRank>(
+    'GET',
+    `/api/gamification/leaderboard/${metric}/rank?discordId=${discordId}`,
+  );
 }

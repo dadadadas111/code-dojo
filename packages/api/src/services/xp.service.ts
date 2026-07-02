@@ -2,6 +2,7 @@ import { getLevelFromXp } from '@code-dojo/shared';
 import { StudentModel } from '../db/models/student.model';
 import { NotFoundError } from '../errors';
 import { recordActivity } from './activitylog.service';
+import { safeZAdd } from './leaderboard.service';
 
 export interface XpAward {
   xpAwarded: number;
@@ -50,6 +51,8 @@ export async function awardXp(input: {
     amount: input.amount,
     metadata: input.metadata ?? {},
   });
+
+  await safeZAdd('xp', student.id, student.xp);
 
   return {
     xpAwarded: input.amount,

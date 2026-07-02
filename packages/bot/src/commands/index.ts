@@ -20,6 +20,7 @@ import { reviewCommand } from './review.command';
 import { checkinCommand } from './checkin.command';
 import { attendanceCommand } from './attendance.command';
 import { attendanceMarkCommand } from './attendance-mark.command';
+import { leaderboardCommand } from './leaderboard.command';
 
 export const commands = new Map<string, Command>([
   [pingCommand.data.name, pingCommand],
@@ -37,4 +38,5 @@ export const commands = new Map<string, Command>([
   [checkinCommand.data.name, checkinCommand],
   [attendanceCommand.data.name, attendanceCommand],
   [attendanceMarkCommand.data.name, attendanceMarkCommand],
+  [leaderboardCommand.data.name, leaderboardCommand],
 ]);

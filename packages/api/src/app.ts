@@ -14,6 +14,7 @@ import { homeworkRouter } from './routes/homework.routes';
 import { homeworkHelperRouter } from './routes/homework-helper.routes';
 import { submissionRouter } from './routes/submission.routes';
 import { attendanceRouter } from './routes/attendance.routes';
+import { gamificationRouter } from './routes/gamification.routes';
 import { env } from './config/env';
 
 export async function createServer(): Promise<Application> {
@@ -57,7 +58,7 @@ export async function createServer(): Promise<Application> {
   app.use('/api/homework', homeworkHelperRouter);
   app.use('/api/submissions', submissionRouter);
   app.use('/api/attendance', attendanceRouter);
-  // app.use('/api/gamification', gamificationRouter);
+  app.use('/api/gamification', gamificationRouter);
   // app.use('/api/shop', shopRouter);
   // app.use('/api/dashboard', dashboardRouter);
 

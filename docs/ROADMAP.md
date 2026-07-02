@@ -147,10 +147,10 @@
 
 | # | Task | Status |
 |---|------|--------|
-| 7.1 | Leaderboard API (Top XP, Top Coins, Top Streak) | ⬜ |
-| 7.2 | Redis sorted sets for fast ranking | ⬜ |
-| 7.3 | `/leaderboard` slash command (paginated embed) | ⬜ |
-| 7.4 | Monthly reset option | ⬜ |
+| 7.1 | Leaderboard API (Top XP, Top Coins, Top Streak) | ✅ Done |
+| 7.2 | Redis sorted sets for fast ranking | ✅ Done |
+| 7.3 | `/leaderboard` slash command (paginated embed) | ✅ Done |
+| 7.4 | Monthly reset option | ✅ Done (manual teacher rebuild; scheduling deferred to Phase 8) |
 
 **Deliverable:** `/leaderboard` shows rankings. Redis-backed for performance.
 
