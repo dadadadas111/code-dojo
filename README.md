@@ -108,6 +108,7 @@ pnpm --filter @code-dojo/bot deploy-commands
 | [ADVANCED_FEATURES.md](docs/ADVANCED_FEATURES.md) | Future ideas & stretch goals |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, data flow, tech decisions |
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Dev environment, conventions, workflow |
+| [DISCORD_SETUP.md](docs/DISCORD_SETUP.md) | Connect the bot to a live Discord server (token, roles, env, smoke test) |
 
 ## License
 
