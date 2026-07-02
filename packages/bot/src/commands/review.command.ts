@@ -98,6 +98,14 @@ export const reviewCommand: Command = {
         });
       }
 
+      if (submission.coins) {
+        embed.addFields({
+          name: 'Coins',
+          value: `+${submission.coins.coinsAwarded} coins`,
+          inline: false,
+        });
+      }
+
       await interaction.reply({ embeds: [embed] });
 
       if (submission.xp?.leveledUp && interaction.guild) {

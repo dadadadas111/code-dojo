@@ -10,8 +10,9 @@ import { SubmissionModel } from '../db/models/submission.model';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../errors';
 import { getStudentByDiscordId } from './student.service';
 import { getHomeworkById } from './homework.service';
-import { hasXpForSubmission } from './activitylog.service';
+import { hasRewardForSubmission } from './activitylog.service';
 import { awardXp, type XpAward } from './xp.service';
+import { awardCoins, type CoinAward } from './coin.service';
 
 const SORTABLE_FIELDS = new Set(['submittedAt']);
 
@@ -85,7 +86,7 @@ export async function createSubmission(input: {
 export async function gradeSubmission(
   id: string,
   patch: { status: 'grading' | 'accepted' | 'revision'; score?: number; feedback?: string },
-): Promise<{ submission: Submission; xp: XpAward | null }> {
+): Promise<{ submission: Submission; xp: XpAward | null; coins: CoinAward | null }> {
   const submission = await getSubmissionById(id);
   assertTransition(submission.status, patch.status);
 
@@ -120,21 +121,35 @@ export async function gradeSubmission(
   const graded = toSubmission(doc);
 
   let xp: XpAward | null = null;
-  if (graded.status === 'accepted' && !(await hasXpForSubmission(id))) {
+  let coins: CoinAward | null = null;
+  if (graded.status === 'accepted' && !(await hasRewardForSubmission(id))) {
     const early = graded.submittedAt.getTime() <= homework.deadline.getTime();
-    const amount = homework.xpReward + (early ? XP_REWARDS.homework_early : 0);
-    // A homework may carry xpReward 0; only award (and log) when there's XP to give.
-    if (amount > 0) {
+    const xpAmount = homework.xpReward + (early ? XP_REWARDS.homework_early : 0);
+    const coinAmount = homework.coinReward;
+
+    // A homework may carry xpReward/coinReward of 0; only award (and log) when there's
+    // something to give. XP is awarded before coins - if awardCoins throws afterward,
+    // the shared hasRewardForSubmission guard means a retry awards neither (not
+    // self-healing), same MVP trade-off as attendance check-in.
+    if (xpAmount > 0) {
       xp = await awardXp({
         studentId: graded.studentId,
-        amount,
+        amount: xpAmount,
         description: `Hoàn thành bài tập: ${homework.title}`,
         metadata: { submissionId: id, homeworkId: homework.id, early },
       });
     }
+    if (coinAmount > 0) {
+      coins = await awardCoins({
+        studentId: graded.studentId,
+        amount: coinAmount,
+        description: `Hoàn thành bài tập: ${homework.title}`,
+        metadata: { submissionId: id, homeworkId: homework.id },
+      });
+    }
   }
 
-  return { submission: graded, xp };
+  return { submission: graded, xp, coins };
 }
 
 export async function resubmitSubmission(

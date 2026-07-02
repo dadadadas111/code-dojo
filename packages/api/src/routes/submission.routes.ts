@@ -108,6 +108,6 @@ submissionRouter.patch(
       req.params['id'] as string,
       req.body as z.infer<typeof gradeBody>,
     );
-    res.json({ success: true, data: { ...result.submission, xp: result.xp } });
+    res.json({ success: true, data: { ...result.submission, xp: result.xp, coins: result.coins } });
   }),
 );

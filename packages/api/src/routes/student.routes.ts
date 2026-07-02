@@ -29,6 +29,23 @@ const paginationQuery = z.object({
   order: z.enum(['asc', 'desc']).optional(),
 });
 
+const activityQuery = paginationQuery.extend({
+  type: z
+    .enum([
+      'xp_earned',
+      'coin_earned',
+      'coin_spent',
+      'level_up',
+      'achievement_earned',
+      'submission_created',
+      'submission_graded',
+      'attendance_checked',
+      'streak_updated',
+      'item_purchased',
+    ])
+    .optional(),
+});
+
 const idParam = z.object({ id: z.string() });
 
 const discordParam = z.object({ discordId: z.string().min(1) });
@@ -99,11 +116,11 @@ studentRouter.patch(
 
 studentRouter.get(
   '/:id/activity',
-  validate({ params: idParam, query: paginationQuery }),
+  validate({ params: idParam, query: activityQuery }),
   wrap(async (req, res) => {
     const data = await listByStudent(
       req.params['id'] as string,
-      req.query as z.infer<typeof paginationQuery>,
+      req.query as z.infer<typeof activityQuery>,
     );
     res.json({ success: true, data });
   }),

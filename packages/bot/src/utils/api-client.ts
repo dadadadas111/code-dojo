@@ -21,6 +21,12 @@ export interface XpAward {
   discordId: string;
 }
 
+export interface CoinAward {
+  coinsAwarded: number;
+  newBalance: number;
+  discordId: string;
+}
+
 export class ApiError extends Error {
   status: number;
 
@@ -206,10 +212,13 @@ export interface GradeSubmissionInput {
 export async function gradeSubmission(
   id: string,
   patch: GradeSubmissionInput,
-): Promise<Submission & { xp: XpAward | null }> {
-  return request<Submission & { xp: XpAward | null }>('PATCH', `/api/submissions/${id}`, patch, {
-    teacher: true,
-  });
+): Promise<Submission & { xp: XpAward | null; coins: CoinAward | null }> {
+  return request<Submission & { xp: XpAward | null; coins: CoinAward | null }>(
+    'PATCH',
+    `/api/submissions/${id}`,
+    patch,
+    { teacher: true },
+  );
 }
 
 export interface ResubmitSubmissionInput {
@@ -227,10 +236,14 @@ export async function resubmitSubmission(input: ResubmitSubmissionInput): Promis
 
 // ---- Attendance ----
 
-export async function checkin(discordId: string): Promise<Attendance & { xp: XpAward | null }> {
-  return request<Attendance & { xp: XpAward | null }>('POST', '/api/attendance/checkin', {
-    discordId,
-  });
+export async function checkin(
+  discordId: string,
+): Promise<Attendance & { xp: XpAward | null; coins: CoinAward | null }> {
+  return request<Attendance & { xp: XpAward | null; coins: CoinAward | null }>(
+    'POST',
+    '/api/attendance/checkin',
+    { discordId },
+  );
 }
 
 export interface LessonAttendance {

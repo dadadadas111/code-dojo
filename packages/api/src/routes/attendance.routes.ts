@@ -44,7 +44,9 @@ attendanceRouter.post(
   wrap(async (req, res) => {
     const { discordId } = req.body as z.infer<typeof checkinBody>;
     const result = await checkin(discordId);
-    res.status(201).json({ success: true, data: { ...result.attendance, xp: result.xp } });
+    res
+      .status(201)
+      .json({ success: true, data: { ...result.attendance, xp: result.xp, coins: result.coins } });
   }),
 );
 

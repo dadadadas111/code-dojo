@@ -1,12 +1,13 @@
 import mongoose from 'mongoose';
 import type { Attendance, AttendanceStatus } from '@code-dojo/shared';
-import { XP_REWARDS } from '@code-dojo/shared';
+import { XP_REWARDS, COIN_REWARDS } from '@code-dojo/shared';
 import { AttendanceModel } from '../db/models/attendance.model';
 import { LessonModel } from '../db/models/lesson.model';
 import { ConflictError, NotFoundError } from '../errors';
 import { getStudentByDiscordId } from './student.service';
 import { getCurrentLessonForActiveCourse } from './lesson.service';
 import { awardXp, type XpAward } from './xp.service';
+import { awardCoins, type CoinAward } from './coin.service';
 
 const LATE_GRACE_PERIOD_MS = 10 * 60_000;
 
@@ -16,7 +17,7 @@ function toAttendance(doc: mongoose.Document): Attendance {
 
 export async function checkin(
   discordId: string,
-): Promise<{ attendance: Attendance; xp: XpAward | null }> {
+): Promise<{ attendance: Attendance; xp: XpAward | null; coins: CoinAward | null }> {
   const student = await getStudentByDiscordId(discordId);
   const lesson = await getCurrentLessonForActiveCourse();
 
@@ -56,8 +57,14 @@ export async function checkin(
     description: 'Điểm danh buổi học',
     metadata: { lessonId: lesson.id, attendanceId: attendance.id },
   });
+  const coins = await awardCoins({
+    studentId: student.id,
+    amount: COIN_REWARDS.attend_class,
+    description: 'Điểm danh buổi học',
+    metadata: { lessonId: lesson.id, attendanceId: attendance.id },
+  });
 
-  return { attendance, xp };
+  return { attendance, xp, coins };
 }
 
 export async function markAttendance(

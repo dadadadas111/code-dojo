@@ -491,9 +491,9 @@ describe('GET /api/students/:id/activity', () => {
     expect(typeof data['totalPages']).toBe('number');
 
     const entries = data['data'] as Array<Record<string, unknown>>;
-    // attendance xp_earned + homework xp_earned + level_up = 3 entries
-    expect(data['total']).toBe(3);
-    expect(entries).toHaveLength(3);
+    // attendance xp_earned + attendance coin_earned + homework xp_earned + level_up = 4 entries
+    expect(data['total']).toBe(4);
+    expect(entries).toHaveLength(4);
 
     // Sorted newest-first: the level_up/xp_earned from the homework grade
     // (which happened after checkin) should come before the attendance entry.
@@ -509,7 +509,7 @@ describe('GET /api/students/:id/activity', () => {
     // Pagination: limit=1 returns exactly one entry, totalPages reflects total.
     const paged = await getActivity(studentId, '?page=1&limit=1');
     expect((paged['data'] as unknown[]).length).toBe(1);
-    expect(paged['totalPages']).toBe(3);
+    expect(paged['totalPages']).toBe(4);
   });
 });
 

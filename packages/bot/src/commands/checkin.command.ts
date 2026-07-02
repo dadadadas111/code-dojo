@@ -23,6 +23,14 @@ export const checkinCommand: Command = {
         });
       }
 
+      if (attendance.coins) {
+        embed.addFields({
+          name: 'Coins',
+          value: `+${attendance.coins.coinsAwarded} coins`,
+          inline: true,
+        });
+      }
+
       await interaction.reply({ embeds: [embed] });
 
       if (attendance.xp?.leveledUp && interaction.guild) {

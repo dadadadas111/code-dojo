@@ -130,10 +130,10 @@
 
 | # | Task | Status |
 |---|------|--------|
-| 6.1 | Coin balance field on Student | ⬜ |
-| 6.2 | Coin earning triggers (parallel to XP) | ⬜ |
-| 6.3 | Coin transaction history | ⬜ |
-| 6.4 | Coin display in `/profile` | ⬜ |
+| 6.1 | Coin balance field on Student | ✅ Done |
+| 6.2 | Coin earning triggers (parallel to XP) | ✅ Done |
+| 6.3 | Coin transaction history | ✅ Done |
+| 6.4 | Coin display in `/profile` | ✅ Done |
 
 **Deliverable:** Coins accumulate. Visible in profile.
 

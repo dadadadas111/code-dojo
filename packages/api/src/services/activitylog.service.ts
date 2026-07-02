@@ -32,7 +32,7 @@ export async function recordActivity(entry: {
 
 export async function listByStudent(
   studentId: string,
-  query: PaginationQuery,
+  query: PaginationQuery & { type?: ActivityType },
 ): Promise<PaginatedResponse<ActivityLog>> {
   const page = Math.max(1, query.page ?? 1);
   const limit = Math.min(100, Math.max(1, query.limit ?? 20));
@@ -42,7 +42,8 @@ export async function listByStudent(
     query.sort !== undefined && SORTABLE_FIELDS.has(query.sort) ? query.sort : 'createdAt';
   const sortOrder = query.order === 'asc' ? 1 : -1;
 
-  const filter = { studentId };
+  const filter: Record<string, unknown> = { studentId };
+  if (query.type !== undefined) filter['type'] = query.type;
 
   const [docs, total] = await Promise.all([
     ActivityLogModel.find(filter)
@@ -61,9 +62,9 @@ export async function listByStudent(
   };
 }
 
-export async function hasXpForSubmission(submissionId: string): Promise<boolean> {
+export async function hasRewardForSubmission(submissionId: string): Promise<boolean> {
   const doc = await ActivityLogModel.findOne({
-    type: 'xp_earned',
+    type: { $in: ['xp_earned', 'coin_earned'] },
     'metadata.submissionId': submissionId,
   });
   return doc !== null;
