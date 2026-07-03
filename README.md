@@ -109,6 +109,7 @@ pnpm --filter @code-dojo/bot deploy-commands
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, data flow, tech decisions |
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Dev environment, conventions, workflow |
 | [DISCORD_SETUP.md](docs/DISCORD_SETUP.md) | Connect the bot to a live Discord server (token, roles, env, smoke test) |
+| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | VPS + GHCR + GitHub Actions deploy pipeline, ops runbook |
 
 ## License
 

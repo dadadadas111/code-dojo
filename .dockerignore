@@ -1,0 +1,15 @@
+# Keep the build context lean and free of local/secret artifacts
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+.git
+.github
+.env
+.env.*
+docker-data
+docs
+*.md
+**/*.test.ts
+**/*.spec.ts
+packages/*/src/tests
+.claude
