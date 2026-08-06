@@ -117,9 +117,7 @@ describe('GET /api/guild-config/:guildId', () => {
       .set('Authorization', AUTH)
       .send(FULL_BODY);
 
-    const res = await request(app)
-      .get(`/api/guild-config/${GUILD_ID}`)
-      .set('Authorization', AUTH);
+    const res = await request(app).get(`/api/guild-config/${GUILD_ID}`).set('Authorization', AUTH);
 
     expect(res.status).toBe(200);
     expect(res.body.data.guildId).toBe(GUILD_ID);
@@ -127,9 +125,7 @@ describe('GET /api/guild-config/:guildId', () => {
   });
 
   it('returns 404 for an unconfigured guild', async () => {
-    const res = await request(app)
-      .get(`/api/guild-config/${GUILD_ID}`)
-      .set('Authorization', AUTH);
+    const res = await request(app).get(`/api/guild-config/${GUILD_ID}`).set('Authorization', AUTH);
 
     expect(res.status).toBe(404);
     expect(res.body.success).toBe(false);

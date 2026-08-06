@@ -35,9 +35,7 @@ function formatCommands(rows: ReadonlyArray<readonly [string, string]>): string 
 }
 
 export const helpCommand: Command = {
-  data: new SlashCommandBuilder()
-    .setName('help')
-    .setDescription('Hướng dẫn sử dụng bot Code Dojo'),
+  data: new SlashCommandBuilder().setName('help').setDescription('Hướng dẫn sử dụng bot Code Dojo'),
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     // Sections are filtered per viewer so students don't see commands they can't run.
@@ -48,7 +46,11 @@ export const helpCommand: Command = {
       fields.push({ name: '👨‍🏫 Giáo viên', value: formatCommands(TEACHER_COMMANDS), inline: false });
     }
     if (interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
-      fields.push({ name: '⚙️ Quản trị viên', value: formatCommands(ADMIN_COMMANDS), inline: false });
+      fields.push({
+        name: '⚙️ Quản trị viên',
+        value: formatCommands(ADMIN_COMMANDS),
+        inline: false,
+      });
     }
 
     await interaction.reply({

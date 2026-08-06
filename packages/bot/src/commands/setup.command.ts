@@ -10,7 +10,12 @@ import type {
 import { LEVEL_THRESHOLDS } from '@code-dojo/shared';
 import type { Command } from './index';
 import { ApiError, saveGuildConfig } from '../utils/api-client';
-import { setGuildConfig, teacherRoleId, levelRoleMap, levelupChannelId } from '../config/guild-config';
+import {
+  setGuildConfig,
+  teacherRoleId,
+  levelRoleMap,
+  levelupChannelId,
+} from '../config/guild-config';
 
 const TEACHER_ROLE_NAME = 'Teacher';
 const CATEGORY_NAME = 'Code Dojo';
