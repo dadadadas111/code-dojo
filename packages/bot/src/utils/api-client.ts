@@ -2,6 +2,7 @@ import type {
   Attendance,
   AttendanceStatus,
   Course,
+  GuildConfig,
   Homework,
   HomeworkType,
   Lesson,
@@ -286,6 +287,25 @@ export async function markAttendance(
 
 export async function getMyAttendance(discordId: string): Promise<Attendance[]> {
   return request<Attendance[]>('GET', `/api/attendance/student/by-discord/${discordId}`);
+}
+
+// ---- Guild Config ----
+
+export interface GuildConfigInput {
+  teacherRoleId?: string | null;
+  levelRoleIds?: Record<string, string>;
+  levelupChannelId?: string | null;
+}
+
+export async function fetchGuildConfig(guildId: string): Promise<GuildConfig> {
+  return request<GuildConfig>('GET', `/api/guild-config/${guildId}`);
+}
+
+export async function saveGuildConfig(
+  guildId: string,
+  input: GuildConfigInput,
+): Promise<GuildConfig> {
+  return request<GuildConfig>('PUT', `/api/guild-config/${guildId}`, input);
 }
 
 // ---- Gamification ----

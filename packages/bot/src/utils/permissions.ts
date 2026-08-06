@@ -1,6 +1,6 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { GuildMemberRoleManager } from 'discord.js';
-import { env } from '../config/env';
+import { teacherRoleId } from '../config/guild-config';
 
 export function isTeacher(interaction: ChatInputCommandInteraction): boolean {
   if (!interaction.inGuild()) return false;
@@ -8,7 +8,9 @@ export function isTeacher(interaction: ChatInputCommandInteraction): boolean {
   const { member } = interaction;
   if (!member) return false;
 
-  const roleId = env.TEACHER_ROLE_ID;
+  // Null until /setup has run (or TEACHER_ROLE_ID is set) — nobody is a teacher yet.
+  const roleId = teacherRoleId();
+  if (!roleId) return false;
 
   if (member.roles instanceof GuildMemberRoleManager) {
     return member.roles.cache.has(roleId);

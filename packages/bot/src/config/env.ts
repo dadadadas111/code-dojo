@@ -6,7 +6,9 @@ const envSchema = z.object({
   DISCORD_GUILD_ID: z.string().optional(),
   API_URL: z.string().url(),
   API_KEY: z.string().min(16),
-  TEACHER_ROLE_ID: z.string().min(1),
+  // Optional since /setup: guild config stored via the API is the primary
+  // source; this env var is only the fallback for pre-/setup installs.
+  TEACHER_ROLE_ID: z.string().min(1).optional(),
   // JSON object mapping level -> Discord role ID, e.g. {"1":"roleid","2":"roleid"}.
   // Never throws on missing/malformed input — parsed safely via levelRoleIds().
   LEVEL_ROLE_IDS: z.string().optional(),

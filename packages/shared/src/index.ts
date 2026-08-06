@@ -163,6 +163,23 @@ export interface ActivityLog {
 }
 
 // ============================================
+// Guild Config
+// ============================================
+
+/**
+ * Per-guild Discord configuration created by the bot's /setup command.
+ * Stored in Mongo so a fresh server needs no manual .env role/channel IDs.
+ * Stored values win; matching env vars (TEACHER_ROLE_ID, LEVEL_ROLE_IDS,
+ * LEVELUP_CHANNEL_ID) are the fallback for pre-/setup installs.
+ */
+export interface GuildConfig {
+  guildId: string;
+  teacherRoleId: string | null;
+  levelRoleIds: Record<string, string>;
+  levelupChannelId: string | null;
+}
+
+// ============================================
 // Discord Interaction Types
 // ============================================
 

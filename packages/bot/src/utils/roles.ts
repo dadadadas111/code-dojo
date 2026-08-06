@@ -1,19 +1,20 @@
 import { EmbedBuilder } from 'discord.js';
 import type { Guild } from 'discord.js';
-import { env, levelRoleIds } from '../config/env';
+import { levelRoleMap, levelupChannelId } from '../config/guild-config';
 
 /**
  * Syncs a member's level role: removes any other configured level roles they
- * hold and adds the role for `newLevel`. No-ops when LEVEL_ROLE_IDS is unset
- * or malformed. Never throws — Discord permission/hierarchy issues are logged
- * and swallowed so a role-sync failure can't break the calling command.
+ * hold and adds the role for `newLevel`. No-ops when no level roles are
+ * configured (via /setup or LEVEL_ROLE_IDS). Never throws — Discord
+ * permission/hierarchy issues are logged and swallowed so a role-sync failure
+ * can't break the calling command.
  */
 export async function applyLevelRole(
   guild: Guild,
   discordId: string,
   newLevel: number,
 ): Promise<void> {
-  const roleMap = levelRoleIds();
+  const roleMap = levelRoleMap();
   const roleIds = Object.values(roleMap);
   if (roleIds.length === 0) return;
 
@@ -39,8 +40,9 @@ export async function applyLevelRole(
 }
 
 /**
- * Posts a level-up announcement in LEVELUP_CHANNEL_ID. No-ops when unset.
- * Never throws — channel-fetch/send failures are logged and swallowed.
+ * Posts a level-up announcement in the configured level-up channel (via
+ * /setup or LEVELUP_CHANNEL_ID). No-ops when unset. Never throws —
+ * channel-fetch/send failures are logged and swallowed.
  */
 export async function announceLevelUp(
   guild: Guild,
@@ -48,10 +50,11 @@ export async function announceLevelUp(
   newLevel: number,
   newTitle: string,
 ): Promise<void> {
-  if (!env.LEVELUP_CHANNEL_ID) return;
+  const channelId = levelupChannelId();
+  if (!channelId) return;
 
   try {
-    const channel = await guild.channels.fetch(env.LEVELUP_CHANNEL_ID);
+    const channel = await guild.channels.fetch(channelId);
     if (!channel || !channel.isTextBased()) return;
 
     const embed = new EmbedBuilder()

@@ -6,6 +6,8 @@ export interface Command {
 }
 
 import { pingCommand } from './ping.command';
+import { helpCommand } from './help.command';
+import { setupCommand } from './setup.command';
 import { registerCommand } from './register.command';
 import { profileCommand } from './profile.command';
 import { courseCreateCommand } from './course-create.command';
@@ -24,6 +26,8 @@ import { leaderboardCommand } from './leaderboard.command';
 
 export const commands = new Map<string, Command>([
   [pingCommand.data.name, pingCommand],
+  [helpCommand.data.name, helpCommand],
+  [setupCommand.data.name, setupCommand],
   [registerCommand.data.name, registerCommand],
   [profileCommand.data.name, profileCommand],
   [courseCreateCommand.data.name, courseCreateCommand],

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { env } from './config/env';
+import { loadGuildConfig } from './config/guild-config';
 import { commands } from './commands/index';
 
 const client = new Client({
@@ -12,9 +13,21 @@ const client = new Client({
   ],
 });
 
-client.once('ready', () => {
+client.once('ready', async () => {
   console.log(`[Bot] Logged in as ${client.user?.tag}`);
   console.log(`[Bot] Serving ${client.guilds.cache.size} guild(s)`);
+
+  // Single-guild MVP: load the stored config for the dev guild, or the first
+  // (only) guild the bot is in.
+  const guildId = env.DISCORD_GUILD_ID ?? client.guilds.cache.first()?.id;
+  if (!guildId) return;
+
+  const loaded = await loadGuildConfig(guildId);
+  console.log(
+    loaded
+      ? `[Bot] Guild config loaded for ${guildId}`
+      : `[Bot] No stored guild config for ${guildId} — run /setup (env vars are the fallback)`,
+  );
 });
 
 client.on('interactionCreate', async (interaction) => {

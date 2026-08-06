@@ -39,29 +39,13 @@ Open the generated URL, pick your server, authorize.
 
 ---
 
-## 3. Set up server roles, channels & IDs
+## 3. Get your server ID
 
-Enable **Developer Mode** (Discord Settings → Advanced → Developer Mode), then right-click → **Copy ID**.
+Enable **Developer Mode** (Discord Settings → Advanced → Developer Mode), right-click your server icon → **Copy Server ID** → `DISCORD_GUILD_ID` (used for *instant* slash-command registration in dev).
 
-1. **Guild ID** — right-click your server icon → Copy Server ID → `DISCORD_GUILD_ID` (used for *instant* slash-command registration in dev).
-2. **Teacher role** — create a role (e.g. `Teacher`), assign it to yourself, copy its ID → `TEACHER_ROLE_ID`. **Required** — the bot won't start without it, and teacher commands (`/course-create`, `/lesson-add`, `/homework-create`, `/review`, `/attendance-mark`) check for this role.
-3. *(Optional)* **Level roles** — create 6 roles matching the level titles and copy each ID into `LEVEL_ROLE_IDS` as JSON:
+That's the only ID you copy by hand. Roles and channels are created by the **`/setup`** command (step 6): the `Teacher` role, the 6 level roles (Beginner → Legend), and a **Code Dojo** category with `#level-up`, `#thông-báo`, `#bài-tập`. The IDs are saved to MongoDB via the API — no `.env` editing, no restart.
 
-   | Level | Title |
-   |-------|-------|
-   | 1 | Beginner |
-   | 2 | Coder |
-   | 3 | Programmer |
-   | 4 | Developer |
-   | 5 | Master |
-   | 6 | Legend |
-
-   ```
-   LEVEL_ROLE_IDS={"1":"<id>","2":"<id>","3":"<id>","4":"<id>","5":"<id>","6":"<id>"}
-   ```
-
-   ⚠️ **Drag the bot's own role ABOVE all six level roles** in Server Settings → Roles, or Discord refuses the role change (hierarchy rule).
-4. *(Optional)* **Level-up channel** — create e.g. `#level-up`, copy its ID → `LEVELUP_CHANNEL_ID` (where level-up announcements post). If unset, announcements are silently skipped.
+> Manual override (optional): `TEACHER_ROLE_ID`, `LEVEL_ROLE_IDS`, `LEVELUP_CHANNEL_ID` in `.env` still work as a *fallback* for installs that never ran `/setup`. Stored config from `/setup` takes precedence.
 
 ---
 
@@ -76,20 +60,20 @@ cp .env.example .env   # if you don't have one yet
 | `DISCORD_TOKEN` | ✅ | Bot token from step 1 |
 | `DISCORD_CLIENT_ID` | ✅ (for deploy) | Application ID; needed to register slash commands |
 | `DISCORD_GUILD_ID` | dev | Your server ID → commands appear instantly |
-| `TEACHER_ROLE_ID` | ✅ | Teacher role ID from step 3 (bot won't boot without it) |
 | `API_KEY` | ✅ | Shared secret, **min 16 chars**. Bot and API both read this same root `.env`, so one value authenticates the bot→API calls. Set a real random string. |
 | `MONGODB_URI` | ✅ | Default `mongodb://localhost:27017/code-dojo` works with `pnpm docker:up` |
 | `REDIS_URL` | ✅ | Default `redis://localhost:6379` |
 | `JWT_SECRET` | ✅ | Any random string (reserved for a future web dashboard) |
-| `LEVEL_ROLE_IDS` | ❌ | JSON map from step 3; role sync no-ops if unset |
-| `LEVELUP_CHANNEL_ID` | ❌ | Announcement channel; skipped if unset |
+| `TEACHER_ROLE_ID` | ❌ | Fallback only — `/setup` creates & stores the role automatically |
+| `LEVEL_ROLE_IDS` | ❌ | Fallback only — `/setup` fills these; role sync no-ops if nothing configured |
+| `LEVELUP_CHANNEL_ID` | ❌ | Fallback only — `/setup` fills this; announcements skipped if nothing configured |
 
 ---
 
 ## 5. Register commands & run
 
 ```bash
-pnpm --filter @code-dojo/bot deploy-commands   # registers the 16 slash commands to your guild (instant)
+pnpm --filter @code-dojo/bot deploy-commands   # registers the 18 slash commands to your guild (instant)
 pnpm dev                                        # runs API (:3000) + bot together
 ```
 
@@ -105,8 +89,9 @@ Re-run `deploy-commands` whenever you add/rename a command.
 
 ## 6. Smoke test — the full teaching loop, in Discord
 
-Run these as slash commands in your server:
+Run these as slash commands in your server. (`/help` shows this overview in Discord, grouped by role — students only see student commands.)
 
+0. **(Admin)** `/setup` — one-shot onboarding: creates the `Teacher` role, the 6 level roles, the **Code Dojo** category with `#level-up` / `#thông-báo` / `#bài-tập`, and saves all IDs to the database (idempotent — safe to re-run; it reuses anything that already exists). Then **assign the `Teacher` role to yourself** — the bot can't know who teaches.
 1. `/register` — creates your student profile.
 2. `/profile` — shows XP / Level / Coins (with the progress bar).
 3. **(Teacher)** `/course-create name:"Khoá TS 2026" description:"Intro" start_date:2026-07-10`
@@ -125,10 +110,11 @@ Run these as slash commands in your server:
 | Symptom | Fix |
 |---------|-----|
 | Bot exits: "Used disallowed intents" | Enable **Message Content Intent** (step 1.2). |
-| Bot exits: env validation error for `TEACHER_ROLE_ID` / `API_KEY` | Set them in `.env` (`API_KEY` ≥ 16 chars). |
+| Bot exits: env validation error for `API_KEY` | Set it in `.env` (≥ 16 chars). |
 | Slash commands don't appear | Re-run `deploy-commands`; guild commands are instant, global take ~1h. Ensure `DISCORD_GUILD_ID` is set for dev. |
-| Teacher commands say "Chỉ giáo viên…" | Your account doesn't have the `TEACHER_ROLE_ID` role — assign it. |
-| Level-up role not applied | Bot needs `Manage Roles` AND its role must sit **above** the level roles; check `LEVEL_ROLE_IDS`. |
+| `/setup` says the bot lacks permissions | Grant the bot's role `Manage Roles` + `Manage Channels` (or re-invite with step 2's URL). |
+| Teacher commands say "Chỉ giáo viên…" | Run `/setup` if you haven't, then assign the `Teacher` role to your account. |
+| Level-up role not applied | The bot's role must sit **above** the level roles (drag it up in Server Settings → Roles). `/setup` warns you when this is the case. |
 | API calls 401 from the bot | `API_KEY` in `.env` must be set (the bot sends it as a Bearer token). |
 | `/checkin` says "no lesson today" | Create a lesson whose `scheduled_date` falls on today (Asia/Ho_Chi_Minh). |
 
