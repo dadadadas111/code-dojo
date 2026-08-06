@@ -1,8 +1,20 @@
-import type { ChatInputCommandInteraction } from 'discord.js';
-import { GuildMemberRoleManager } from 'discord.js';
+import type {
+  ButtonInteraction,
+  ChatInputCommandInteraction,
+  ModalSubmitInteraction,
+  StringSelectMenuInteraction,
+} from 'discord.js';
+import { GuildMemberRoleManager, PermissionFlagsBits } from 'discord.js';
 import { teacherRoleId } from '../config/guild-config';
 
-export function isTeacher(interaction: ChatInputCommandInteraction): boolean {
+/** Any interaction shape we gate on roles/permissions — slash, component, or modal. */
+export type MemberInteraction =
+  | ChatInputCommandInteraction
+  | ButtonInteraction
+  | StringSelectMenuInteraction
+  | ModalSubmitInteraction;
+
+export function isTeacher(interaction: MemberInteraction): boolean {
   if (!interaction.inGuild()) return false;
 
   const { member } = interaction;
@@ -18,4 +30,9 @@ export function isTeacher(interaction: ChatInputCommandInteraction): boolean {
 
   // member.roles is string[] in raw REST interactions
   return (member.roles as string[]).includes(roleId);
+}
+
+export function isAdmin(interaction: MemberInteraction): boolean {
+  if (!interaction.inGuild()) return false;
+  return interaction.memberPermissions?.has(PermissionFlagsBits.Administrator) ?? false;
 }

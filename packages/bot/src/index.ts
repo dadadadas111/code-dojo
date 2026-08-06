@@ -3,6 +3,7 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import { env } from './config/env';
 import { loadGuildConfig } from './config/guild-config';
 import { commands } from './commands/index';
+import { routeComponent } from './interactions/registry';
 
 const client = new Client({
   intents: [
@@ -31,22 +32,29 @@ client.once('ready', async () => {
 });
 
 client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-
-  const { commandName } = interaction;
-  const command = commands.get(commandName);
+  const isComponent =
+    interaction.isButton() || interaction.isStringSelectMenu() || interaction.isModalSubmit();
+  if (!interaction.isChatInputCommand() && !isComponent) return;
 
   try {
-    if (!command) {
-      await interaction.reply({
-        content: `Command \`/${commandName}\` is registered but not yet implemented.`,
-        ephemeral: true,
-      });
-      return;
+    if (interaction.isChatInputCommand()) {
+      const command = commands.get(interaction.commandName);
+      if (!command) {
+        await interaction.reply({
+          content: `Command \`/${interaction.commandName}\` is registered but not yet implemented.`,
+          ephemeral: true,
+        });
+        return;
+      }
+      await command.execute(interaction);
+    } else {
+      await routeComponent(interaction);
     }
-    await command.execute(interaction);
   } catch (error) {
-    console.error(`[Bot] Error handling /${commandName}:`, error);
+    const label = interaction.isChatInputCommand()
+      ? `/${interaction.commandName}`
+      : `component ${interaction.customId}`;
+    console.error(`[Bot] Error handling ${label}:`, error);
     const reply = {
       content: 'Có lỗi xảy ra khi xử lý lệnh. Vui lòng thử lại sau.',
       ephemeral: true,

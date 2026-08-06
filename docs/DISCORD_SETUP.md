@@ -73,7 +73,7 @@ cp .env.example .env   # if you don't have one yet
 ## 5. Register commands & run
 
 ```bash
-pnpm --filter @code-dojo/bot deploy-commands   # registers the 18 slash commands to your guild (instant)
+pnpm --filter @code-dojo/bot deploy-commands   # registers the 19 slash commands to your guild (instant)
 pnpm dev                                        # runs API (:3000) + bot together
 ```
 
@@ -98,8 +98,8 @@ Run these as slash commands in your server. (`/help` shows this overview in Disc
 4. **(Teacher)** `/lesson-add order:1 topic:"Intro to TS" description:"basics" scheduled_date:2026-07-15T18:00`
 5. `/schedule` — lists the course's lessons. `/lesson` — shows the next upcoming lesson.
 6. **(Teacher)** `/homework-create title:"HW1" description:"do it" type:coding deadline:2026-07-20 xp_reward:100 coin_reward:50 max_score:100`
-7. `/homework` — lists homework with indexes. `/submit homework:1 github_link:https://github.com/you/repo`
-8. **(Teacher)** `/review` (no args → lists pending) then `/review submission_id:<id> status:accepted score:95 feedback:"nice"` → student gains XP + coins; crossing a threshold swaps their level role and posts to the level-up channel.
+7. `/homework` — lists homework with indexes **and a select menu: pick one to open the submit form** (or use `/submit homework:1 github_link:https://github.com/you/repo`)
+8. **(Teacher)** `/review` (no args → pending list with a select menu: **pick a submission → ✅/✏️ buttons → score+feedback form**; or grade by hand with `/review submission_id:<id> status:accepted score:95 feedback:"nice"`) → student gains XP + coins; crossing a threshold swaps their level role and posts to the level-up channel. **(Admin)** `/assign-role` manually assigns/removes the Teacher or level roles.
 9. `/checkin` — marks attendance for today's lesson (needs a lesson scheduled today). **(Teacher)** `/attendance lesson:1` — the roster.
 10. `/leaderboard metric:XP` — rankings with your own position.
 
