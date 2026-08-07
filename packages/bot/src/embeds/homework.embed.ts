@@ -53,7 +53,7 @@ export function buildHomeworkListEmbed(
 }
 
 export function buildHomeworkDetailEmbed(homework: Homework): EmbedBuilder {
-  return new EmbedBuilder()
+  const embed = new EmbedBuilder()
     .setTitle(homework.title)
     .setDescription(homework.description)
     .setColor(0x5865f2)
@@ -68,4 +68,6 @@ export function buildHomeworkDetailEmbed(homework: Homework): EmbedBuilder {
       { name: 'Điểm tối đa', value: String(homework.maxScore), inline: true },
     )
     .setFooter({ text: `Homework ID: ${homework.id}` });
+  if (homework.source?.url) embed.setURL(homework.source.url);
+  return embed;
 }

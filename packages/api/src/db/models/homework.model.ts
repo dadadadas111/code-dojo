@@ -1,5 +1,5 @@
 import mongoose, { type Document, type Model } from 'mongoose';
-import type { Homework, HomeworkType } from '@code-dojo/shared';
+import type { Homework, HomeworkSource, HomeworkType } from '@code-dojo/shared';
 
 const HOMEWORK_TYPES: HomeworkType[] = ['quiz', 'coding', 'reading', 'practice', 'challenge'];
 
@@ -14,6 +14,7 @@ export interface HomeworkDocument extends Document {
   coinReward: number;
   maxScore: number;
   isActive: boolean;
+  source: HomeworkSource;
 }
 
 const homeworkSchema = new mongoose.Schema<HomeworkDocument>(
@@ -28,6 +29,8 @@ const homeworkSchema = new mongoose.Schema<HomeworkDocument>(
     coinReward: { type: Number, default: 0 },
     maxScore: { type: Number, default: 100 },
     isActive: { type: Boolean, default: true },
+    // { type: 'manual'|'leetcode', slug?, difficulty?, url? } — set by the leetcode import path.
+    source: { type: mongoose.Schema.Types.Mixed, default: { type: 'manual' } },
   },
   {
     timestamps: true,

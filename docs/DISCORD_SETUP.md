@@ -22,7 +22,7 @@ pnpm --filter @code-dojo/shared build
 1. Go to <https://discord.com/developers/applications> → **New Application** → name it `Code Dojo`.
 2. **Bot** tab → **Add Bot**.
    - **Reset Token** → copy it → this is `DISCORD_TOKEN`.
-   - Under **Privileged Gateway Intents**, enable **Message Content Intent**. ⚠️ **Required** — the bot declares this intent, so login fails with "Used disallowed intents" if it's off. (Enabling *Server Members Intent* too is harmless and future-proof.)
+   - Under **Privileged Gateway Intents**, enable **Message Content Intent**. ⚠️ **Required** — the bot declares this intent, so login fails with "Used disallowed intents" if it's off. **Server Members Intent** is also ⚠️ **required** (the bot greets newcomers on join).
 3. **General Information** tab → copy **Application ID** → this is `DISCORD_CLIENT_ID`.
 
 ---
@@ -97,7 +97,7 @@ Run these as slash commands in your server. (`/help` shows this overview in Disc
 3. **(Teacher)** `/course-create name:"Khoá TS 2026" description:"Intro" start_date:2026-07-10`
 4. **(Teacher)** `/schedule-set slot1:"T7 08:00" slot2:"T2 20:00"` — the course's fixed weekly rhythm; then `/lesson-add order:1 topic:"Intro to TS" description:"basics"` — **no date needed**, the lesson snaps onto the next free slot (`scheduled_date:` still works as an override). Busy day? `/postpone` shifts everything one slot and announces it in `#thông-báo`.
 5. `/schedule` — lists the course's lessons. `/lesson` — shows the next upcoming lesson.
-6. **(Teacher)** `/homework-create title:"HW1" description:"do it" type:coding deadline:2026-07-20 xp_reward:100 coin_reward:50 max_score:100`
+6. **(Teacher)** `/homework-create title:"HW1" description:"do it" type:coding deadline:2026-07-20 xp_reward:100 coin_reward:50 max_score:100` — or import from LeetCode in one option: `/homework-create leetcode:two-sum deadline:2026-07-20` (title, difficulty, and XP/coin rewards auto-fill; new homework auto-posts to `#bài-tập` with a submit menu). New members get greeted in `#đăng-ký` with a register button — no commands needed.
 7. `/homework` — lists homework with indexes **and a select menu: pick one to open the submit form** (or use `/submit homework:1 github_link:https://github.com/you/repo`)
 8. **(Teacher)** `/review` (no args → pending list with a select menu: **pick a submission → ✅/✏️ buttons → score+feedback form**; or grade by hand with `/review submission_id:<id> status:accepted score:95 feedback:"nice"`) → student gains XP + coins; crossing a threshold swaps their level role and posts to the level-up channel. **(Admin)** `/assign-role` manually assigns/removes the Teacher or level roles.
 9. `/checkin` — marks attendance for today's lesson (needs a lesson scheduled today). **(Teacher)** `/attendance lesson:1` — the roster.

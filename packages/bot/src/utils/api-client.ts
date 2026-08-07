@@ -187,10 +187,12 @@ export async function getNextLesson(): Promise<Lesson> {
 // ---- Homework ----
 
 export interface CreateHomeworkInput {
-  title: string;
-  description: string;
-  type: HomeworkType;
+  title?: string;
+  description?: string;
+  type?: HomeworkType;
   deadline: string;
+  /** Slug or URL — server imports title/description/rewards from LeetCode. */
+  leetcodeSlug?: string;
   xpReward?: number;
   coinReward?: number;
   maxScore?: number;
@@ -332,6 +334,7 @@ export interface GuildConfigInput {
   levelupChannelId?: string | null;
   announceChannelId?: string | null;
   homeworkChannelId?: string | null;
+  registerChannelId?: string | null;
 }
 
 export async function fetchGuildConfig(guildId: string): Promise<GuildConfig> {

@@ -68,6 +68,16 @@ export interface Lesson {
 
 export type HomeworkType = 'quiz' | 'coding' | 'reading' | 'practice' | 'challenge';
 
+export type LeetCodeDifficulty = 'Easy' | 'Medium' | 'Hard';
+
+/** Where a homework came from — imported problems carry their origin for links and auto-verify (later). */
+export interface HomeworkSource {
+  type: 'manual' | 'leetcode';
+  slug?: string;
+  difficulty?: LeetCodeDifficulty;
+  url?: string;
+}
+
 export interface Homework {
   id: string;
   courseId: string;
@@ -80,6 +90,7 @@ export interface Homework {
   coinReward: number;
   maxScore: number;
   isActive: boolean;
+  source: HomeworkSource;
   createdAt: Date;
 }
 
@@ -198,6 +209,8 @@ export interface GuildConfig {
   announceChannelId: string | null;
   /** #bài-tập — new homework is auto-posted here with a submit menu. */
   homeworkChannelId: string | null;
+  /** #đăng-ký — welcome messages for newcomers land here. */
+  registerChannelId: string | null;
 }
 
 // ============================================

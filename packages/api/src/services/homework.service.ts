@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
 import type { Homework, HomeworkType, PaginationQuery, PaginatedResponse } from '@code-dojo/shared';
 import { HomeworkModel } from '../db/models/homework.model';
-import { NotFoundError } from '../errors';
+import { NotFoundError, ValidationError } from '../errors';
 import { getActiveCourse } from './course.service';
+import { fetchProblem, toHomeworkSource, REWARDS_BY_DIFFICULTY } from './leetcode.service';
 
 const SORTABLE_FIELDS = new Set(['deadline', 'title', 'createdAt']);
 
@@ -13,18 +14,51 @@ function toHomework(doc: mongoose.Document): Homework {
 export async function createHomework(
   courseId: string,
   input: {
-    title: string;
-    description: string;
-    type: HomeworkType;
+    title?: string;
+    description?: string;
+    type?: HomeworkType;
     deadline: Date;
     xpReward?: number;
     coinReward?: number;
     maxScore?: number;
     lessonId?: string | null;
     isActive?: boolean;
+    /** Slug or URL — imports title/description/rewards from LeetCode; explicit fields win. */
+    leetcodeSlug?: string;
   },
 ): Promise<Homework> {
-  const doc = await HomeworkModel.create({ courseId, ...input });
+  const { leetcodeSlug, ...rest } = input;
+  let fields = rest;
+
+  if (leetcodeSlug) {
+    const problem = await fetchProblem(leetcodeSlug);
+    const rewards = REWARDS_BY_DIFFICULTY[problem.difficulty];
+    fields = {
+      title: rest.title ?? `[LeetCode] ${problem.title}`,
+      description:
+        rest.description ??
+        `${problem.url}\nĐộ khó: **${problem.difficulty}**` +
+          (problem.tags.length > 0 ? ` · Tags: ${problem.tags.join(', ')}` : ''),
+      type: rest.type ?? 'coding',
+      deadline: rest.deadline,
+      xpReward: rest.xpReward ?? rewards.xp,
+      coinReward: rest.coinReward ?? rewards.coins,
+      ...(rest.maxScore !== undefined ? { maxScore: rest.maxScore } : {}),
+      ...(rest.lessonId !== undefined ? { lessonId: rest.lessonId } : {}),
+      ...(rest.isActive !== undefined ? { isActive: rest.isActive } : {}),
+    };
+    const doc = await HomeworkModel.create({
+      courseId,
+      ...fields,
+      source: toHomeworkSource(problem),
+    });
+    return toHomework(doc);
+  }
+
+  if (!fields.title || fields.description === undefined || !fields.type) {
+    throw new ValidationError('title, description, and type are required without leetcodeSlug');
+  }
+  const doc = await HomeworkModel.create({ courseId, ...fields });
   return toHomework(doc);
 }
 

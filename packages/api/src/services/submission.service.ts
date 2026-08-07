@@ -8,6 +8,7 @@ import type {
 import { XP_REWARDS } from '@code-dojo/shared';
 import { SubmissionModel } from '../db/models/submission.model';
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '../errors';
+import { assertRepoReachable } from './github.service';
 import { getStudentByDiscordId } from './student.service';
 import { getHomeworkById } from './homework.service';
 import { hasRewardForSubmission } from './activitylog.service';
@@ -56,6 +57,11 @@ export async function createSubmission(input: {
     input.fileUrl === undefined
   ) {
     throw new ValidationError('At least one of content, githubLink, or fileUrl is required');
+  }
+
+  // Dead-link guard: rejects only when GitHub definitively says 404 (fail-open).
+  if (input.githubLink !== undefined) {
+    await assertRepoReachable(input.githubLink);
   }
 
   const status: SubmissionStatus = Date.now() > homework.deadline.getTime() ? 'late' : 'pending';
@@ -173,6 +179,10 @@ export async function resubmitSubmission(
     input.fileUrl === undefined
   ) {
     throw new ValidationError('At least one of content, githubLink, or fileUrl is required');
+  }
+
+  if (input.githubLink !== undefined) {
+    await assertRepoReachable(input.githubLink);
   }
 
   const homework = await getHomeworkById(submission.homeworkId);

@@ -4,10 +4,13 @@ import { env } from './config/env';
 import { loadGuildConfig } from './config/guild-config';
 import { commands } from './commands/index';
 import { routeComponent } from './interactions/registry';
+import { greetNewMember } from './interactions/welcome';
+import { registerChannelId } from './config/guild-config';
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.MessageContent,
@@ -29,6 +32,21 @@ client.once('ready', async () => {
       ? `[Bot] Guild config loaded for ${guildId}`
       : `[Bot] No stored guild config for ${guildId} — run /setup (env vars are the fallback)`,
   );
+});
+
+client.on('guildMemberAdd', async (member) => {
+  if (member.user.bot) return;
+  try {
+    const channelId = registerChannelId();
+    const channel = channelId
+      ? await member.guild.channels.fetch(channelId)
+      : member.guild.channels.cache.find((c) => c.isTextBased() && c.name === 'đăng-ký');
+    if (channel?.isTextBased()) {
+      await greetNewMember(member, channel as never);
+    }
+  } catch (err) {
+    console.warn('[Bot] Failed to greet new member:', err);
+  }
 });
 
 client.on('interactionCreate', async (interaction) => {

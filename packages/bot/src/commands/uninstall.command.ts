@@ -206,6 +206,7 @@ export const uninstallComponents: ComponentHandler = {
         levelupChannelId: null,
         announceChannelId: null,
         homeworkChannelId: null,
+        registerChannelId: null,
       });
       configCleared = true;
     } catch (err) {

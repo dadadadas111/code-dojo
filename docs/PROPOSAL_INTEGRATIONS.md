@@ -1,6 +1,6 @@
 # Proposal: Breaking Out of the Discord Silo
 
-> Status: **PROPOSAL — nothing here is built yet.** Written 2026-08-07 in response to:
+> Status: slices 1–2 SHIPPED (F+G1+E-hiding on 2026-08-07; A1+C+G2 same day). Remaining: A2/A3, B, D. Originally written 2026-08-07 in response to:
 > "the bot is too isolated in Discord — LeetCode pull? account linking? AI lesson generation? make it as convenient as possible."
 > Complements [ROADMAP.md](ROADMAP.md) (Phases 8–12) and [ADVANCED_FEATURES.md](ADVANCED_FEATURES.md).
 

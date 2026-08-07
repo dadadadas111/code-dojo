@@ -8,6 +8,7 @@ export interface GuildConfigDocument extends Document {
   levelupChannelId: string | null;
   announceChannelId: string | null;
   homeworkChannelId: string | null;
+  registerChannelId: string | null;
 }
 
 const guildConfigSchema = new mongoose.Schema<GuildConfigDocument>(
@@ -21,6 +22,7 @@ const guildConfigSchema = new mongoose.Schema<GuildConfigDocument>(
     levelupChannelId: { type: String, default: null },
     announceChannelId: { type: String, default: null },
     homeworkChannelId: { type: String, default: null },
+    registerChannelId: { type: String, default: null },
   },
   {
     timestamps: true,

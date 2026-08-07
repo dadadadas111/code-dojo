@@ -19,7 +19,9 @@ import {
   levelupChannelId,
   announceChannelId,
   homeworkChannelId,
+  registerChannelId,
 } from '../config/guild-config';
+import { buildStandingWelcome, WELCOME_PIN_TITLE } from '../interactions/welcome';
 
 // Exported so /uninstall can find and remove the same artifacts by name.
 export const TEACHER_ROLE_NAME = 'Teacher';
@@ -125,6 +127,22 @@ async function ensureTextChannel(
     ...(overwrites ? { permissionOverwrites: overwrites } : {}),
   });
   return { entity: channel, created: true };
+}
+
+/** Posts + pins the standing welcome message in #đăng-ký; skips if already pinned. */
+async function ensureStandingWelcome(channel: TextChannel): Promise<void> {
+  try {
+    const pins = await channel.messages.fetchPinned();
+    const existing = pins.find(
+      (msg) =>
+        msg.author.id === channel.client.user.id && msg.embeds[0]?.title === WELCOME_PIN_TITLE,
+    );
+    if (existing) return;
+    const message = await channel.send(buildStandingWelcome());
+    await message.pin();
+  } catch (err) {
+    console.warn('[Bot] Failed to pin standing welcome:', err);
+  }
 }
 
 export const setupCommand: Command = {
@@ -250,8 +268,9 @@ export const setupCommand: Command = {
         guild,
         REGISTER_CHANNEL_NAME,
         category.entity.id,
-        null,
+        registerChannelId(),
       );
+      await ensureStandingWelcome(registerChannel.entity);
       const studentBotChannels: Array<Ensured<TextChannel>> = [];
       for (const name of STUDENT_BOT_CHANNEL_NAMES) {
         studentBotChannels.push(
@@ -275,6 +294,7 @@ export const setupCommand: Command = {
         levelupChannelId: levelupChannel.entity.id,
         announceChannelId: announceChannel.entity.id,
         homeworkChannelId: homeworkChannel.entity.id,
+        registerChannelId: registerChannel.entity.id,
       });
       // Apply immediately — no restart needed.
       setGuildConfig(savedConfig);

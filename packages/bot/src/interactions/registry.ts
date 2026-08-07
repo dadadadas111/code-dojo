@@ -9,6 +9,7 @@ import { homeworkComponents } from '../commands/homework.command';
 import { reviewComponents } from '../commands/review.command';
 import { uninstallComponents } from '../commands/uninstall.command';
 import { resetComponents } from '../commands/reset.command';
+import { welcomeComponents } from './welcome';
 
 const handlers: Record<string, ComponentHandler> = {
   help: helpComponents,
@@ -16,6 +17,7 @@ const handlers: Record<string, ComponentHandler> = {
   review: reviewComponents,
   uninstall: uninstallComponents,
   reset: resetComponents,
+  welcome: welcomeComponents,
 };
 
 export type ComponentInteraction =

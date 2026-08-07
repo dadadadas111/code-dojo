@@ -18,6 +18,7 @@ type StoredConfig = Pick<
   | 'levelupChannelId'
   | 'announceChannelId'
   | 'homeworkChannelId'
+  | 'registerChannelId'
 >;
 
 let stored: StoredConfig = {
@@ -27,6 +28,7 @@ let stored: StoredConfig = {
   levelupChannelId: null,
   announceChannelId: null,
   homeworkChannelId: null,
+  registerChannelId: null,
 };
 
 /**
@@ -57,7 +59,13 @@ export function setGuildConfig(config: StoredConfig): void {
     levelupChannelId: config.levelupChannelId ?? null,
     announceChannelId: config.announceChannelId ?? null,
     homeworkChannelId: config.homeworkChannelId ?? null,
+    registerChannelId: config.registerChannelId ?? null,
   };
+}
+
+/** #đăng-ký — where newcomers get greeted and register. */
+export function registerChannelId(): string | null {
+  return stored.registerChannelId;
 }
 
 /** #thông-báo — read-only announcement feed (postpones, new homework, reminders). */

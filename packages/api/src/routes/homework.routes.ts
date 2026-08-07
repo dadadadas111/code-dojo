@@ -30,10 +30,11 @@ const courseIdParam = z.object({ courseId: z.string() });
 const homeworkIdParam = z.object({ courseId: z.string(), id: z.string() });
 
 const createBody = z.object({
-  title: z.string().min(1),
-  description: z.string(),
-  type: z.enum(['quiz', 'coding', 'reading', 'practice', 'challenge']),
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  type: z.enum(['quiz', 'coding', 'reading', 'practice', 'challenge']).optional(),
   deadline: z.coerce.date(),
+  leetcodeSlug: z.string().min(1).optional(),
   xpReward: z.number().int().nonnegative().optional(),
   coinReward: z.number().int().nonnegative().optional(),
   maxScore: z.number().int().positive().optional(),

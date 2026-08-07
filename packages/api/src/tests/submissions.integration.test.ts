@@ -8,7 +8,7 @@
  *   so tests are fully isolated.
  */
 
-import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import type { Application } from 'express';
 import mongoose from 'mongoose';
@@ -34,6 +34,9 @@ const VALID_COURSE_BODY = {
 let app: Application;
 
 beforeAll(async () => {
+  // GitHub link validation (github.service) must never hit the network in tests;
+  // pretend every repo exists.
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}', { status: 200 }));
   await mongoose.connect(MONGO_URI);
   app = await createServer();
 });
@@ -46,6 +49,7 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
+  vi.restoreAllMocks();
   await mongoose.disconnect();
 });
 

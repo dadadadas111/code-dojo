@@ -45,23 +45,35 @@ export const homeworkCreateCommand: Command = {
     .setDescription('[Giáo viên] Tạo bài tập cho khoá học đang hoạt động')
     .setDefaultMemberPermissions('0')
     .addStringOption((opt) =>
-      opt.setName('title').setDescription('Tiêu đề bài tập').setRequired(true),
-    )
-    .addStringOption((opt) =>
-      opt.setName('description').setDescription('Mô tả bài tập').setRequired(true),
-    )
-    .addStringOption((opt) =>
-      opt
-        .setName('type')
-        .setDescription('Loại bài tập')
-        .setRequired(true)
-        .addChoices(...HOMEWORK_TYPES.map((t) => ({ name: t, value: t }))),
-    )
-    .addStringOption((opt) =>
       opt
         .setName('deadline')
         .setDescription('Hạn nộp (YYYY-MM-DD hoặc YYYY-MM-DDTHH:mm)')
         .setRequired(true),
+    )
+    .addStringOption((opt) =>
+      opt
+        .setName('leetcode')
+        .setDescription('Slug hoặc link bài LeetCode — tự lấy đề, độ khó và thưởng')
+        .setRequired(false),
+    )
+    .addStringOption((opt) =>
+      opt
+        .setName('title')
+        .setDescription('Tiêu đề (bỏ trống nếu dùng leetcode)')
+        .setRequired(false),
+    )
+    .addStringOption((opt) =>
+      opt
+        .setName('description')
+        .setDescription('Mô tả (bỏ trống nếu dùng leetcode)')
+        .setRequired(false),
+    )
+    .addStringOption((opt) =>
+      opt
+        .setName('type')
+        .setDescription('Loại bài tập (mặc định coding nếu dùng leetcode)')
+        .setRequired(false)
+        .addChoices(...HOMEWORK_TYPES.map((t) => ({ name: t, value: t }))),
     )
     .addIntegerOption((opt) =>
       opt
@@ -97,10 +109,20 @@ export const homeworkCreateCommand: Command = {
       return;
     }
 
-    const title = interaction.options.getString('title', true);
-    const description = interaction.options.getString('description', true);
-    const type = interaction.options.getString('type', true) as HomeworkType;
+    const leetcode = interaction.options.getString('leetcode');
+    const title = interaction.options.getString('title');
+    const description = interaction.options.getString('description');
+    const type = interaction.options.getString('type') as HomeworkType | null;
     const deadlineStr = interaction.options.getString('deadline', true);
+
+    if (!leetcode && (!title || !description || !type)) {
+      await interaction.reply({
+        content:
+          'Cần `leetcode:` (slug/link) HOẶC đủ bộ `title` + `description` + `type` để tạo bài tập.',
+        ephemeral: true,
+      });
+      return;
+    }
     const xpReward = interaction.options.getInteger('xp_reward');
     const coinReward = interaction.options.getInteger('coin_reward');
     const maxScore = interaction.options.getInteger('max_score');
@@ -135,9 +157,10 @@ export const homeworkCreateCommand: Command = {
 
     try {
       const homework = await createHomework(course.id, {
-        title,
-        description,
-        type,
+        ...(title ? { title } : {}),
+        ...(description ? { description } : {}),
+        ...(type ? { type } : {}),
+        ...(leetcode ? { leetcodeSlug: leetcode } : {}),
         deadline: deadline.toISOString(),
         ...(xpReward !== null ? { xpReward } : {}),
         ...(coinReward !== null ? { coinReward } : {}),
@@ -168,6 +191,20 @@ export const homeworkCreateCommand: Command = {
       await announceHomework(interaction, homework);
     } catch (err) {
       if (err instanceof ApiError) {
+        if (err.status === 404 && leetcode) {
+          await interaction.reply({
+            content: `Không tìm thấy bài LeetCode "${leetcode}" — kiểm tra slug/link.`,
+            ephemeral: true,
+          });
+          return;
+        }
+        if (err.status === 502) {
+          await interaction.reply({
+            content: 'LeetCode đang không truy cập được — thử lại sau hoặc tạo thủ công.',
+            ephemeral: true,
+          });
+          return;
+        }
         await interaction.reply({
           content: `Lỗi khi tạo bài tập: ${err.message}`,
           ephemeral: true,

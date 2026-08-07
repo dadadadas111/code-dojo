@@ -8,7 +8,7 @@ import { studentRoleId } from '../config/guild-config';
  * Grants the Student role (unlocks the student bot-command channels).
  * Never throws — a missing role or hierarchy problem must not fail /register.
  */
-async function grantStudentRole(guild: Guild | null, discordId: string): Promise<boolean> {
+export async function grantStudentRole(guild: Guild | null, discordId: string): Promise<boolean> {
   const roleId = studentRoleId();
   if (!guild || !roleId) return false;
   try {
