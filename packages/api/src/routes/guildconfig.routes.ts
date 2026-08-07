@@ -8,7 +8,11 @@ import {
 } from 'express';
 import { z } from 'zod';
 import { validate } from '../middleware/validation.middleware';
-import { getGuildConfig, upsertGuildConfig } from '../services/guildconfig.service';
+import {
+  deleteGuildConfig,
+  getGuildConfig,
+  upsertGuildConfig,
+} from '../services/guildconfig.service';
 
 const guildIdParam = z.object({ guildId: z.string().min(1) });
 
@@ -34,6 +38,15 @@ guildConfigRouter.get(
   wrap(async (req, res) => {
     const data = await getGuildConfig(req.params['guildId'] as string);
     res.json({ success: true, data });
+  }),
+);
+
+guildConfigRouter.delete(
+  '/:guildId',
+  validate({ params: guildIdParam }),
+  wrap(async (req, res) => {
+    const deleted = await deleteGuildConfig(req.params['guildId'] as string);
+    res.json({ success: true, data: { deleted } });
   }),
 );
 

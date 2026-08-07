@@ -55,6 +55,8 @@ const SECTIONS: Record<SectionKey, Section> = {
     commands: [
       ['/setup', 'Khởi tạo server: tạo role, kênh và lưu cấu hình'],
       ['/assign-role', 'Gán / gỡ role Code Dojo (Teacher, role cấp độ) cho thành viên'],
+      ['/uninstall', 'Gỡ cài đặt: xoá role, kênh và cấu hình do /setup tạo'],
+      ['/reset', 'Xoá TOÀN BỘ dữ liệu lớp học (dev/test)'],
     ],
   },
 };

@@ -9,6 +9,8 @@ import { pingCommand } from './ping.command';
 import { helpCommand } from './help.command';
 import { setupCommand } from './setup.command';
 import { assignRoleCommand } from './assign-role.command';
+import { uninstallCommand } from './uninstall.command';
+import { resetCommand } from './reset.command';
 import { registerCommand } from './register.command';
 import { profileCommand } from './profile.command';
 import { courseCreateCommand } from './course-create.command';
@@ -30,6 +32,8 @@ export const commands = new Map<string, Command>([
   [helpCommand.data.name, helpCommand],
   [setupCommand.data.name, setupCommand],
   [assignRoleCommand.data.name, assignRoleCommand],
+  [uninstallCommand.data.name, uninstallCommand],
+  [resetCommand.data.name, resetCommand],
   [registerCommand.data.name, registerCommand],
   [profileCommand.data.name, profileCommand],
   [courseCreateCommand.data.name, courseCreateCommand],

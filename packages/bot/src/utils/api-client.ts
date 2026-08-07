@@ -308,6 +308,16 @@ export async function saveGuildConfig(
   return request<GuildConfig>('PUT', `/api/guild-config/${guildId}`, input);
 }
 
+export async function deleteGuildConfig(guildId: string): Promise<{ deleted: boolean }> {
+  return request<{ deleted: boolean }>('DELETE', `/api/guild-config/${guildId}`);
+}
+
+// ---- Admin (dev utilities) ----
+
+export async function resetAllData(): Promise<{ deleted: Record<string, number> }> {
+  return request<{ deleted: Record<string, number> }>('POST', '/api/admin/reset');
+}
+
 // ---- Gamification ----
 
 export type LeaderboardMetric = 'xp' | 'coins' | 'streak';

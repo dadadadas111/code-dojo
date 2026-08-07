@@ -19,6 +19,11 @@ const STUDENT_FIELD: Record<LeaderboardMetric, 'xp' | 'coins' | 'currentStreak'>
 
 const CHUNK_SIZE = 500;
 
+/** Deletes only the leaderboard sorted sets — safe on a Redis shared with other apps. */
+export async function clearLeaderboards(): Promise<void> {
+  await redis.del(LEADERBOARD_KEYS.xp, LEADERBOARD_KEYS.coins, LEADERBOARD_KEYS.streak);
+}
+
 export interface LeaderboardEntry {
   rank: number;
   studentId: string;

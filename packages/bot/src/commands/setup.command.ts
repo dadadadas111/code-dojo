@@ -17,11 +17,12 @@ import {
   levelupChannelId,
 } from '../config/guild-config';
 
-const TEACHER_ROLE_NAME = 'Teacher';
-const CATEGORY_NAME = 'Code Dojo';
-const LEVELUP_CHANNEL_NAME = 'level-up';
+// Exported so /uninstall can find and remove the same artifacts by name.
+export const TEACHER_ROLE_NAME = 'Teacher';
+export const CATEGORY_NAME = 'Code Dojo';
+export const LEVELUP_CHANNEL_NAME = 'level-up';
 // Classroom scaffold — created for convenience, not wired to any bot feature.
-const EXTRA_CHANNEL_NAMES = ['thông-báo', 'bài-tập'];
+export const EXTRA_CHANNEL_NAMES = ['thông-báo', 'bài-tập'];
 
 const TEACHER_ROLE_COLOR = 0xed4245;
 const LEVEL_ROLE_COLORS: Record<number, number> = {

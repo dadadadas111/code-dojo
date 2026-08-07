@@ -73,7 +73,7 @@ cp .env.example .env   # if you don't have one yet
 ## 5. Register commands & run
 
 ```bash
-pnpm --filter @code-dojo/bot deploy-commands   # registers the 19 slash commands to your guild (instant)
+pnpm --filter @code-dojo/bot deploy-commands   # registers the 21 slash commands to your guild (instant)
 pnpm dev                                        # runs API (:3000) + bot together
 ```
 
@@ -102,6 +102,17 @@ Run these as slash commands in your server. (`/help` shows this overview in Disc
 8. **(Teacher)** `/review` (no args → pending list with a select menu: **pick a submission → ✅/✏️ buttons → score+feedback form**; or grade by hand with `/review submission_id:<id> status:accepted score:95 feedback:"nice"`) → student gains XP + coins; crossing a threshold swaps their level role and posts to the level-up channel. **(Admin)** `/assign-role` manually assigns/removes the Teacher or level roles.
 9. `/checkin` — marks attendance for today's lesson (needs a lesson scheduled today). **(Teacher)** `/attendance lesson:1` — the roster.
 10. `/leaderboard metric:XP` — rankings with your own position.
+
+---
+
+### Dev utilities: tear down & retest
+
+Both are admin-only with a confirm-button step, so nothing is deleted by accident:
+
+- **`/reset`** — wipes ALL class data (students, courses, lessons, homework, submissions, attendance, activity logs, leaderboards). Discord roles/channels and the guild config survive. Use between test runs.
+- **`/uninstall`** — the inverse of `/setup`: deletes the Teacher role, level roles, the Code Dojo category + its channels, and the stored guild config. Class data survives. Run `/setup` again to reinstall.
+
+`/reset` then `/uninstall` returns a server to a completely clean slate.
 
 ---
 

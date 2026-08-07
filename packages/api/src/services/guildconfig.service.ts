@@ -21,6 +21,12 @@ export async function getGuildConfig(guildId: string): Promise<GuildConfig> {
   return toGuildConfig(doc);
 }
 
+/** Idempotent — returns whether a config existed. Used by the bot's /uninstall. */
+export async function deleteGuildConfig(guildId: string): Promise<boolean> {
+  const res = await GuildConfigModel.deleteOne({ guildId });
+  return res.deletedCount > 0;
+}
+
 export async function upsertGuildConfig(
   guildId: string,
   input: UpsertGuildConfigInput,
