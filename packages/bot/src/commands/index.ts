@@ -11,6 +11,8 @@ import { setupCommand } from './setup.command';
 import { assignRoleCommand } from './assign-role.command';
 import { uninstallCommand } from './uninstall.command';
 import { resetCommand } from './reset.command';
+import { scheduleSetCommand } from './schedule-set.command';
+import { postponeCommand } from './postpone.command';
 import { registerCommand } from './register.command';
 import { profileCommand } from './profile.command';
 import { courseCreateCommand } from './course-create.command';
@@ -34,6 +36,8 @@ export const commands = new Map<string, Command>([
   [assignRoleCommand.data.name, assignRoleCommand],
   [uninstallCommand.data.name, uninstallCommand],
   [resetCommand.data.name, resetCommand],
+  [scheduleSetCommand.data.name, scheduleSetCommand],
+  [postponeCommand.data.name, postponeCommand],
   [registerCommand.data.name, registerCommand],
   [profileCommand.data.name, profileCommand],
   [courseCreateCommand.data.name, courseCreateCommand],

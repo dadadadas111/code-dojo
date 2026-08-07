@@ -73,7 +73,7 @@ cp .env.example .env   # if you don't have one yet
 ## 5. Register commands & run
 
 ```bash
-pnpm --filter @code-dojo/bot deploy-commands   # registers the 21 slash commands to your guild (instant)
+pnpm --filter @code-dojo/bot deploy-commands   # registers the 23 slash commands to your guild (instant)
 pnpm dev                                        # runs API (:3000) + bot together
 ```
 
@@ -95,7 +95,7 @@ Run these as slash commands in your server. (`/help` shows this overview in Disc
 1. `/register` — creates your student profile.
 2. `/profile` — shows XP / Level / Coins (with the progress bar).
 3. **(Teacher)** `/course-create name:"Khoá TS 2026" description:"Intro" start_date:2026-07-10`
-4. **(Teacher)** `/lesson-add order:1 topic:"Intro to TS" description:"basics" scheduled_date:2026-07-15T18:00`
+4. **(Teacher)** `/schedule-set slot1:"T7 08:00" slot2:"T2 20:00"` — the course's fixed weekly rhythm; then `/lesson-add order:1 topic:"Intro to TS" description:"basics"` — **no date needed**, the lesson snaps onto the next free slot (`scheduled_date:` still works as an override). Busy day? `/postpone` shifts everything one slot and announces it in `#thông-báo`.
 5. `/schedule` — lists the course's lessons. `/lesson` — shows the next upcoming lesson.
 6. **(Teacher)** `/homework-create title:"HW1" description:"do it" type:coding deadline:2026-07-20 xp_reward:100 coin_reward:50 max_score:100`
 7. `/homework` — lists homework with indexes **and a select menu: pick one to open the submit form** (or use `/submit homework:1 github_link:https://github.com/you/repo`)
@@ -125,6 +125,7 @@ Both are admin-only with a confirm-button step, so nothing is deleted by acciden
 | Slash commands don't appear | Re-run `deploy-commands`; guild commands are instant, global take ~1h. Ensure `DISCORD_GUILD_ID` is set for dev. |
 | `/setup` says the bot lacks permissions | Grant the bot's role `Manage Roles` + `Manage Channels` (or re-invite with step 2's URL). |
 | Teacher commands say "Chỉ giáo viên…" | Run `/setup` if you haven't, then assign the `Teacher` role to your account. |
+| Teachers can't SEE teacher commands | Teacher commands default to admin-only visibility. One-time: Server Settings → Integrations → Code Dojo → grant the `Teacher` role on each teacher command (`/setup`'s summary lists them). Students then see only student commands. |
 | Level-up role not applied | The bot's role must sit **above** the level roles (drag it up in Server Settings → Roles). `/setup` warns you when this is the case. |
 | API calls 401 from the bot | `API_KEY` in `.env` must be set (the bot sends it as a Bearer token). |
 | `/checkin` says "no lesson today" | Create a lesson whose `scheduled_date` falls on today (Asia/Ho_Chi_Minh). |

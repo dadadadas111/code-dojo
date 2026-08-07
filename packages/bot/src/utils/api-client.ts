@@ -129,9 +129,43 @@ export interface CreateLessonInput {
   order: number;
   topic: string;
   description: string;
-  scheduledDate: string;
+  /** Omit to auto-snap onto the course's next free recurring slot. */
+  scheduledDate?: string;
   slideUrl?: string | null;
   recordingUrl?: string | null;
+}
+
+export interface CourseScheduleInput {
+  slots: Array<{ day: number; time: string }>;
+  timezone?: string;
+}
+
+export async function setCourseSchedule(
+  courseId: string,
+  input: CourseScheduleInput,
+): Promise<Course> {
+  return request<Course>('PUT', `/api/courses/${courseId}/schedule`, input, { teacher: true });
+}
+
+export interface ScheduleShiftChange {
+  lessonId: string;
+  order: number;
+  topic: string;
+  from: string;
+  to: string;
+}
+
+export async function shiftCourseSchedule(
+  courseId: string,
+  direction: 'later' | 'earlier',
+  fromOrder?: number,
+): Promise<{ changes: ScheduleShiftChange[] }> {
+  return request<{ changes: ScheduleShiftChange[] }>(
+    'POST',
+    `/api/courses/${courseId}/schedule/shift`,
+    { direction, ...(fromOrder !== undefined ? { fromOrder } : {}) },
+    { teacher: true },
+  );
 }
 
 export async function createLesson(courseId: string, input: CreateLessonInput): Promise<Lesson> {
@@ -296,6 +330,8 @@ export interface GuildConfigInput {
   studentRoleId?: string | null;
   levelRoleIds?: Record<string, string>;
   levelupChannelId?: string | null;
+  announceChannelId?: string | null;
+  homeworkChannelId?: string | null;
 }
 
 export async function fetchGuildConfig(guildId: string): Promise<GuildConfig> {

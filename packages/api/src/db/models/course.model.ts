@@ -1,5 +1,5 @@
 import mongoose, { type Document, type Model } from 'mongoose';
-import type { Course } from '@code-dojo/shared';
+import type { Course, CourseSchedule } from '@code-dojo/shared';
 
 export interface CourseDocument extends Document {
   name: string;
@@ -7,6 +7,7 @@ export interface CourseDocument extends Document {
   startDate: Date;
   endDate: Date | null;
   isActive: boolean;
+  schedule: CourseSchedule | null;
 }
 
 const courseSchema = new mongoose.Schema<CourseDocument>(
@@ -16,6 +17,8 @@ const courseSchema = new mongoose.Schema<CourseDocument>(
     startDate: { type: Date, required: true },
     endDate: { type: Date, default: null },
     isActive: { type: Boolean, default: true },
+    // { slots: [{day, time}], timezone } — validated by zod at the route layer.
+    schedule: { type: mongoose.Schema.Types.Mixed, default: null },
   },
   {
     timestamps: true,

@@ -204,6 +204,8 @@ export const uninstallComponents: ComponentHandler = {
         studentRoleId: null,
         levelRoleIds: {},
         levelupChannelId: null,
+        announceChannelId: null,
+        homeworkChannelId: null,
       });
       configCleared = true;
     } catch (err) {

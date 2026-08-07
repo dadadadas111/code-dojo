@@ -8,6 +8,7 @@ export const courseCreateCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('course-create')
     .setDescription('[Giáo viên] Tạo khoá học mới')
+    .setDefaultMemberPermissions('0')
     .addStringOption((opt) => opt.setName('name').setDescription('Tên khoá học').setRequired(true))
     .addStringOption((opt) =>
       opt.setName('description').setDescription('Mô tả khoá học').setRequired(true),

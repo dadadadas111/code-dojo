@@ -9,6 +9,7 @@ export interface LessonDocument extends Document {
   slideUrl: string | null;
   recordingUrl: string | null;
   scheduledDate: Date;
+  postponedCount: number;
 }
 
 const lessonSchema = new mongoose.Schema<LessonDocument>(
@@ -20,6 +21,7 @@ const lessonSchema = new mongoose.Schema<LessonDocument>(
     slideUrl: { type: String, default: null },
     recordingUrl: { type: String, default: null },
     scheduledDate: { type: Date, required: true },
+    postponedCount: { type: Number, default: 0 },
   },
   {
     timestamps: true,

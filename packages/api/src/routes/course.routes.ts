@@ -16,6 +16,7 @@ import {
   getActiveCourse,
   updateCourse,
 } from '../services/course.service';
+import { setCourseSchedule, shiftSchedule } from '../services/schedule.service';
 
 const paginationQuery = z.object({
   page: z.coerce.number().int().positive().optional(),
@@ -36,6 +37,24 @@ const createBody = z.object({
   startDate: z.coerce.date(),
   endDate: z.coerce.date().nullable().optional(),
   isActive: z.boolean().optional(),
+});
+
+const scheduleBody = z.object({
+  slots: z
+    .array(
+      z.object({
+        day: z.number().int().min(0).max(6),
+        time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+      }),
+    )
+    .min(1)
+    .max(7),
+  timezone: z.string().min(1).default('Asia/Ho_Chi_Minh'),
+});
+
+const shiftBody = z.object({
+  direction: z.enum(['later', 'earlier']),
+  fromOrder: z.number().int().min(0).optional(),
 });
 
 const updateBody = z.object({
@@ -104,5 +123,29 @@ courseRouter.patch(
       req.body as z.infer<typeof updateBody>,
     );
     res.json({ success: true, data });
+  }),
+);
+
+courseRouter.put(
+  '/:id/schedule',
+  requireTeacher,
+  validate({ params: idParam, body: scheduleBody }),
+  wrap(async (req, res) => {
+    const data = await setCourseSchedule(
+      req.params['id'] as string,
+      req.body as z.infer<typeof scheduleBody>,
+    );
+    res.json({ success: true, data });
+  }),
+);
+
+courseRouter.post(
+  '/:id/schedule/shift',
+  requireTeacher,
+  validate({ params: idParam, body: shiftBody }),
+  wrap(async (req, res) => {
+    const { direction, fromOrder } = req.body as z.infer<typeof shiftBody>;
+    const changes = await shiftSchedule(req.params['id'] as string, direction, fromOrder);
+    res.json({ success: true, data: { changes } });
   }),
 );

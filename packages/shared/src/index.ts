@@ -26,6 +26,18 @@ export interface Student {
 // Course & Lesson
 // ============================================
 
+/** One recurring teaching slot. `day` uses JS Date.getDay() convention (0 = Sunday … 6 = Saturday); `time` is 24h "HH:mm" local to the schedule's timezone. */
+export interface CourseScheduleSlot {
+  day: number;
+  time: string;
+}
+
+/** A course's fixed weekly rhythm — lessons snap onto these slots so teachers never type dates. */
+export interface CourseSchedule {
+  slots: CourseScheduleSlot[];
+  timezone: string;
+}
+
 export interface Course {
   id: string;
   name: string;
@@ -33,6 +45,7 @@ export interface Course {
   startDate: Date;
   endDate: Date | null;
   isActive: boolean;
+  schedule: CourseSchedule | null;
   createdAt: Date;
 }
 
@@ -45,6 +58,8 @@ export interface Lesson {
   slideUrl: string | null;
   recordingUrl: string | null;
   scheduledDate: Date;
+  /** Times this lesson was pushed to a later slot by /postpone (audit + 🔁 badge). */
+  postponedCount: number;
 }
 
 // ============================================
@@ -179,6 +194,10 @@ export interface GuildConfig {
   studentRoleId: string | null;
   levelRoleIds: Record<string, string>;
   levelupChannelId: string | null;
+  /** #thông-báo — read-only feed for schedule changes, deadlines, announcements. */
+  announceChannelId: string | null;
+  /** #bài-tập — new homework is auto-posted here with a submit menu. */
+  homeworkChannelId: string | null;
 }
 
 // ============================================

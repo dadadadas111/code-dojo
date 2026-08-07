@@ -17,6 +17,7 @@ export const attendanceMarkCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('attendance-mark')
     .setDescription('[Giáo viên] Sửa điểm danh cho học viên')
+    .setDefaultMemberPermissions('0')
     .addUserOption((opt) =>
       opt.setName('user').setDescription('Học viên cần sửa điểm danh').setRequired(true),
     )

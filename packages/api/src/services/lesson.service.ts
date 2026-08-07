@@ -3,6 +3,7 @@ import type { Lesson, PaginationQuery, PaginatedResponse } from '@code-dojo/shar
 import { LessonModel } from '../db/models/lesson.model';
 import { ConflictError, NotFoundError } from '../errors';
 import { getActiveCourse } from './course.service';
+import { assignNextSlotDate } from './schedule.service';
 
 const SORTABLE_FIELDS = new Set(['order', 'scheduledDate', 'topic']);
 
@@ -16,13 +17,15 @@ export async function createLesson(
     order: number;
     topic: string;
     description: string;
-    scheduledDate: Date;
+    scheduledDate?: Date;
     slideUrl?: string | null;
     recordingUrl?: string | null;
   },
 ): Promise<Lesson> {
+  // No explicit date -> snap onto the course's next free recurring slot.
+  const scheduledDate = input.scheduledDate ?? (await assignNextSlotDate(courseId));
   try {
-    const doc = await LessonModel.create({ courseId, ...input });
+    const doc = await LessonModel.create({ courseId, ...input, scheduledDate });
     return toLesson(doc);
   } catch (err: unknown) {
     if (

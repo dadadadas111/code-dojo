@@ -21,6 +21,8 @@ const upsertBody = z.object({
   studentRoleId: z.string().min(1).nullable().optional(),
   levelRoleIds: z.record(z.string().min(1)).optional(),
   levelupChannelId: z.string().min(1).nullable().optional(),
+  announceChannelId: z.string().min(1).nullable().optional(),
+  homeworkChannelId: z.string().min(1).nullable().optional(),
 });
 
 type AsyncHandler = (req: Request, res: Response, next: NextFunction) => Promise<void>;

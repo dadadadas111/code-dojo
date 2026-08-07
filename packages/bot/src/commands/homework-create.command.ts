@@ -1,9 +1,41 @@
-import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import {
+  ActionRowBuilder,
+  EmbedBuilder,
+  SlashCommandBuilder,
+  StringSelectMenuBuilder,
+} from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { Command } from './index';
-import type { Course, HomeworkType } from '@code-dojo/shared';
+import type { Course, Homework, HomeworkType } from '@code-dojo/shared';
 import { ApiError, createHomework, getActiveCourse } from '../utils/api-client';
 import { isTeacher } from '../utils/permissions';
+import { homeworkChannelId } from '../config/guild-config';
+import { buildHomeworkDetailEmbed } from '../embeds/homework.embed';
+import { componentId } from '../interactions/ids';
+
+/** Auto-posts new homework to #bài-tập with a submit menu. Never throws. */
+async function announceHomework(
+  interaction: ChatInputCommandInteraction,
+  homework: Homework,
+): Promise<void> {
+  const channelId = homeworkChannelId();
+  if (!channelId || !interaction.guild) return;
+  try {
+    const channel = await interaction.guild.channels.fetch(channelId);
+    if (!channel?.isTextBased()) return;
+    const select = new StringSelectMenuBuilder()
+      .setCustomId(componentId('hw', 'pick'))
+      .setPlaceholder('📤 Nộp bài này...')
+      .addOptions([{ label: `Nộp: ${homework.title}`.slice(0, 100), value: homework.id }]);
+    await channel.send({
+      content: '📚 **Bài tập mới!**',
+      embeds: [buildHomeworkDetailEmbed(homework)],
+      components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)],
+    });
+  } catch (err) {
+    console.warn('[Bot] Failed to announce homework:', err);
+  }
+}
 
 const HOMEWORK_TYPES: HomeworkType[] = ['quiz', 'coding', 'reading', 'practice', 'challenge'];
 
@@ -11,6 +43,7 @@ export const homeworkCreateCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('homework-create')
     .setDescription('[Giáo viên] Tạo bài tập cho khoá học đang hoạt động')
+    .setDefaultMemberPermissions('0')
     .addStringOption((opt) =>
       opt.setName('title').setDescription('Tiêu đề bài tập').setRequired(true),
     )
@@ -132,6 +165,7 @@ export const homeworkCreateCommand: Command = {
         .setFooter({ text: `Homework ID: ${homework.id}` });
 
       await interaction.reply({ embeds: [embed] });
+      await announceHomework(interaction, homework);
     } catch (err) {
       if (err instanceof ApiError) {
         await interaction.reply({

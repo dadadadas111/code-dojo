@@ -37,10 +37,12 @@ const SECTIONS: Record<SectionKey, Section> = {
     label: '👨‍🏫 Giáo viên',
     title: '📖 Lệnh dành cho giáo viên',
     description:
-      'Quy trình dạy: `/course-create` → `/lesson-add` từng buổi → `/homework-create` bài tập → `/review` chấm bài (chọn từ menu, bấm nút để chấm).',
+      'Quy trình dạy: `/course-create` → `/schedule-set` đặt nhịp dạy → `/lesson-add` (tự xếp lịch) → `/homework-create` bài tập → `/review` chấm bài (chọn từ menu, bấm nút để chấm).',
     commands: [
       ['/course-create', 'Tạo khoá học mới'],
-      ['/lesson-add', 'Thêm buổi học vào khoá đang hoạt động'],
+      ['/schedule-set', 'Đặt nhịp dạy cố định (vd T7 08:00 + T2 20:00)'],
+      ['/lesson-add', 'Thêm buổi học — tự xếp vào slot dạy kế tiếp'],
+      ['/postpone', 'Dời lịch một slot, cả khoá tự map lại + tự thông báo'],
       ['/homework-create', 'Tạo bài tập (kèm XP/coins thưởng)'],
       ['/review', 'Danh sách chờ chấm — chọn bài và bấm nút để chấm'],
       ['/attendance lesson:<n>', 'Xem điểm danh cả lớp theo buổi học'],

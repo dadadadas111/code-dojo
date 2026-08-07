@@ -17,6 +17,8 @@ import {
   studentRoleId,
   levelRoleMap,
   levelupChannelId,
+  announceChannelId,
+  homeworkChannelId,
 } from '../config/guild-config';
 
 // Exported so /uninstall can find and remove the same artifacts by name.
@@ -24,8 +26,9 @@ export const TEACHER_ROLE_NAME = 'Teacher';
 export const STUDENT_ROLE_NAME = 'Student';
 export const CATEGORY_NAME = 'Code Dojo';
 export const LEVELUP_CHANNEL_NAME = 'level-up';
-// Classroom scaffold — created for convenience, not wired to any bot feature.
-export const EXTRA_CHANNEL_NAMES = ['thông-báo', 'bài-tập'];
+export const ANNOUNCE_CHANNEL_NAME = 'thông-báo';
+export const HOMEWORK_CHANNEL_NAME = 'bài-tập';
+export const EXTRA_CHANNEL_NAMES = [ANNOUNCE_CHANNEL_NAME, HOMEWORK_CHANNEL_NAME];
 // Bot-command channels: register is open to everyone; the numbered ones are
 // student+teacher only; the gv one is teacher only. Admins see all (Discord
 // Administrator bypasses channel overwrites).
@@ -195,16 +198,34 @@ export const setupCommand: Command = {
       }
 
       const category = await ensureCategory(guild);
+
+      // Feed channels: everyone reads, only Teacher + bot post.
+      const feedAccess: OverwriteResolvable[] = [
+        { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.SendMessages] },
+        { id: teacher.entity.id, allow: [PermissionFlagsBits.SendMessages] },
+        { id: me.id, allow: [PermissionFlagsBits.SendMessages] },
+      ];
       const levelupChannel = await ensureTextChannel(
         guild,
         LEVELUP_CHANNEL_NAME,
         category.entity.id,
         levelupChannelId(),
+        feedAccess,
       );
-      const extraChannels: Array<Ensured<TextChannel>> = [];
-      for (const name of EXTRA_CHANNEL_NAMES) {
-        extraChannels.push(await ensureTextChannel(guild, name, category.entity.id, null));
-      }
+      const announceChannel = await ensureTextChannel(
+        guild,
+        ANNOUNCE_CHANNEL_NAME,
+        category.entity.id,
+        announceChannelId(),
+        feedAccess,
+      );
+      // #bài-tập stays chatty — bot posts homework, students discuss under it.
+      const homeworkChannel = await ensureTextChannel(
+        guild,
+        HOMEWORK_CHANNEL_NAME,
+        category.entity.id,
+        homeworkChannelId(),
+      );
 
       // Bot-command channels with permission overwrites. Admins bypass all of
       // these via the Administrator permission — no explicit grant needed.
@@ -252,6 +273,8 @@ export const setupCommand: Command = {
           levelRoles.map(({ level, result }) => [String(level), result.entity.id]),
         ),
         levelupChannelId: levelupChannel.entity.id,
+        announceChannelId: announceChannel.entity.id,
+        homeworkChannelId: homeworkChannel.entity.id,
       });
       // Apply immediately — no restart needed.
       setGuildConfig(savedConfig);
@@ -299,9 +322,17 @@ export const setupCommand: Command = {
                 name: 'Kênh',
                 value: [
                   `Danh mục **${CATEGORY_NAME}** ${category.created ? '(mới tạo)' : '(đã có)'}`,
-                  `Kênh level-up: ${describe(levelupChannel)}`,
-                  ...extraChannels.map((channel) => describe(channel)),
+                  `Feed (chỉ Teacher + bot đăng): ${describe(announceChannel)}, ${describe(levelupChannel)}`,
+                  `${describe(homeworkChannel)} — bot tự đăng bài tập mới vào đây`,
                 ].join('\n'),
+                inline: false,
+              },
+              {
+                name: '👁️ Ẩn lệnh giáo viên với học sinh (làm 1 lần)',
+                value:
+                  'Server Settings → **Integrations** → Code Dojo → chọn từng lệnh giáo viên ' +
+                  '(`course-create`, `lesson-add`, `homework-create`, `review`, `attendance-mark`, `schedule-set`, `postpone`) ' +
+                  '→ thêm role **Teacher**. Bot không tự làm được bước này (giới hạn của Discord).',
                 inline: false,
               },
               {

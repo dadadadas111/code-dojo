@@ -12,6 +12,8 @@ export interface UpsertGuildConfigInput {
   studentRoleId?: string | null;
   levelRoleIds?: Record<string, string>;
   levelupChannelId?: string | null;
+  announceChannelId?: string | null;
+  homeworkChannelId?: string | null;
 }
 
 export async function getGuildConfig(guildId: string): Promise<GuildConfig> {

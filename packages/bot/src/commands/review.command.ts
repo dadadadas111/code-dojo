@@ -123,6 +123,7 @@ export const reviewCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('review')
     .setDescription('[Giáo viên] Xem hoặc chấm bài nộp')
+    .setDefaultMemberPermissions('0')
     .addStringOption((opt) =>
       opt
         .setName('submission_id')

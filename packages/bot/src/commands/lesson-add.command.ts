@@ -9,6 +9,7 @@ export const lessonAddCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('lesson-add')
     .setDescription('[Giáo viên] Thêm buổi học vào khoá học đang hoạt động')
+    .setDefaultMemberPermissions('0')
     .addIntegerOption((opt) =>
       opt
         .setName('order')
@@ -25,8 +26,8 @@ export const lessonAddCommand: Command = {
     .addStringOption((opt) =>
       opt
         .setName('scheduled_date')
-        .setDescription('Ngày/giờ học (YYYY-MM-DD hoặc YYYY-MM-DDTHH:mm)')
-        .setRequired(true),
+        .setDescription('Ngày/giờ (bỏ trống = tự xếp vào slot dạy kế tiếp theo /schedule-set)')
+        .setRequired(false),
     )
     .addStringOption((opt) =>
       opt.setName('slide_url').setDescription('Link slide (tuỳ chọn)').setRequired(false),
@@ -44,16 +45,19 @@ export const lessonAddCommand: Command = {
     const order = interaction.options.getInteger('order', true);
     const topic = interaction.options.getString('topic', true);
     const description = interaction.options.getString('description', true);
-    const scheduledDateStr = interaction.options.getString('scheduled_date', true);
+    const scheduledDateStr = interaction.options.getString('scheduled_date');
     const slideUrl = interaction.options.getString('slide_url');
 
-    const scheduledDate = new Date(scheduledDateStr);
-    if (isNaN(scheduledDate.getTime())) {
-      await interaction.reply({
-        content: `Ngày học không hợp lệ: "${scheduledDateStr}". Dùng định dạng YYYY-MM-DD hoặc YYYY-MM-DDTHH:mm.`,
-        ephemeral: true,
-      });
-      return;
+    let scheduledDate: Date | null = null;
+    if (scheduledDateStr) {
+      scheduledDate = new Date(scheduledDateStr);
+      if (isNaN(scheduledDate.getTime())) {
+        await interaction.reply({
+          content: `Ngày học không hợp lệ: "${scheduledDateStr}". Dùng định dạng YYYY-MM-DD hoặc YYYY-MM-DDTHH:mm.`,
+          ephemeral: true,
+        });
+        return;
+      }
     }
 
     let course: Course;
@@ -79,7 +83,7 @@ export const lessonAddCommand: Command = {
         order,
         topic,
         description,
-        scheduledDate: scheduledDate.toISOString(),
+        ...(scheduledDate ? { scheduledDate: scheduledDate.toISOString() } : {}),
         slideUrl: slideUrl ?? null,
       });
 
@@ -108,6 +112,14 @@ export const lessonAddCommand: Command = {
         if (err.status === 409) {
           await interaction.reply({
             content: `Bài học thứ ${order} đã tồn tại.`,
+            ephemeral: true,
+          });
+          return;
+        }
+        if (err.status === 422 && !scheduledDate) {
+          await interaction.reply({
+            content:
+              'Khoá học chưa có nhịp dạy cố định. Đặt bằng `/schedule-set` (vd `slot1:"T7 08:00"`) hoặc nhập `scheduled_date` thủ công.',
             ephemeral: true,
           });
           return;

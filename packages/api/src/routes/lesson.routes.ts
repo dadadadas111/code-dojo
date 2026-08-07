@@ -32,7 +32,7 @@ const createBody = z.object({
   order: z.number().int().nonnegative(),
   topic: z.string().min(1),
   description: z.string(),
-  scheduledDate: z.coerce.date(),
+  scheduledDate: z.coerce.date().optional(),
   slideUrl: z.string().url().nullable().optional(),
   recordingUrl: z.string().url().nullable().optional(),
 });

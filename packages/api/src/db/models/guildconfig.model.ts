@@ -6,6 +6,8 @@ export interface GuildConfigDocument extends Document {
   studentRoleId: string | null;
   levelRoleIds: Record<string, string>;
   levelupChannelId: string | null;
+  announceChannelId: string | null;
+  homeworkChannelId: string | null;
 }
 
 const guildConfigSchema = new mongoose.Schema<GuildConfigDocument>(
@@ -17,6 +19,8 @@ const guildConfigSchema = new mongoose.Schema<GuildConfigDocument>(
     // needs no flattening; shape is enforced by route-level zod validation.
     levelRoleIds: { type: mongoose.Schema.Types.Mixed, default: {} },
     levelupChannelId: { type: String, default: null },
+    announceChannelId: { type: String, default: null },
+    homeworkChannelId: { type: String, default: null },
   },
   {
     timestamps: true,

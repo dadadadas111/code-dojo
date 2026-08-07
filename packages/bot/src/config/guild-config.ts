@@ -12,7 +12,12 @@ import { ApiError, fetchGuildConfig } from '../utils/api-client';
 
 type StoredConfig = Pick<
   GuildConfig,
-  'teacherRoleId' | 'studentRoleId' | 'levelRoleIds' | 'levelupChannelId'
+  | 'teacherRoleId'
+  | 'studentRoleId'
+  | 'levelRoleIds'
+  | 'levelupChannelId'
+  | 'announceChannelId'
+  | 'homeworkChannelId'
 >;
 
 let stored: StoredConfig = {
@@ -20,6 +25,8 @@ let stored: StoredConfig = {
   studentRoleId: null,
   levelRoleIds: {},
   levelupChannelId: null,
+  announceChannelId: null,
+  homeworkChannelId: null,
 };
 
 /**
@@ -48,7 +55,19 @@ export function setGuildConfig(config: StoredConfig): void {
     studentRoleId: config.studentRoleId ?? null,
     levelRoleIds: config.levelRoleIds ?? {},
     levelupChannelId: config.levelupChannelId ?? null,
+    announceChannelId: config.announceChannelId ?? null,
+    homeworkChannelId: config.homeworkChannelId ?? null,
   };
+}
+
+/** #thông-báo — read-only announcement feed (postpones, new homework, reminders). */
+export function announceChannelId(): string | null {
+  return stored.announceChannelId;
+}
+
+/** #bài-tập — new homework is auto-posted here with a submit menu. */
+export function homeworkChannelId(): string | null {
+  return stored.homeworkChannelId;
 }
 
 /** Stored-only (no env fallback) — the Student role concept arrived with /setup. */
