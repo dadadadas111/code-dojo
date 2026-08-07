@@ -25,7 +25,7 @@ import { componentId, type ComponentHandler } from './ids';
 
 export const WELCOME_PIN_TITLE = '🥋 Chào mừng đến Code Dojo!';
 
-function welcomeButtons(): ActionRowBuilder<ButtonBuilder> {
+export function welcomeButtons(): ActionRowBuilder<ButtonBuilder> {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(componentId('welcome', 'register'))

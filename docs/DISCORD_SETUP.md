@@ -73,7 +73,7 @@ cp .env.example .env   # if you don't have one yet
 ## 5. Register commands & run
 
 ```bash
-pnpm --filter @code-dojo/bot deploy-commands   # registers the 23 slash commands to your guild (instant)
+pnpm --filter @code-dojo/bot deploy-commands   # registers the 24 slash commands to your guild (instant)
 pnpm dev                                        # runs API (:3000) + bot together
 ```
 

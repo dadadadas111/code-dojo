@@ -29,6 +29,13 @@ import {
   TEACHER_BOT_CHANNEL_NAME,
   TEACHER_ROLE_NAME,
 } from './setup.command';
+import {
+  RULES_CHANNEL_NAME,
+  CHAT_CHANNEL_NAME,
+  QA_CHANNEL_NAME,
+  FLEX_CHANNEL_NAME,
+  INTEREST_ROLES,
+} from './setup-onboarding.command';
 
 interface RemovalPlan {
   roleIds: string[];
@@ -48,6 +55,7 @@ async function buildRemovalPlan(guild: Guild): Promise<RemovalPlan> {
   const roleNames = new Set([
     TEACHER_ROLE_NAME,
     STUDENT_ROLE_NAME,
+    ...INTEREST_ROLES.map((r) => r.name),
     ...Object.values(LEVEL_THRESHOLDS).map(({ title }) => title),
   ]);
   for (const role of guild.roles.cache.values()) {
@@ -63,6 +71,10 @@ async function buildRemovalPlan(guild: Guild): Promise<RemovalPlan> {
     LEVELUP_CHANNEL_NAME,
     REGISTER_CHANNEL_NAME,
     TEACHER_BOT_CHANNEL_NAME,
+    RULES_CHANNEL_NAME,
+    CHAT_CHANNEL_NAME,
+    QA_CHANNEL_NAME,
+    FLEX_CHANNEL_NAME,
     ...STUDENT_BOT_CHANNEL_NAMES,
     ...EXTRA_CHANNEL_NAMES,
   ]);

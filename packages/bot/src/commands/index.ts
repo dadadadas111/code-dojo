@@ -12,6 +12,7 @@ import { assignRoleCommand } from './assign-role.command';
 import { uninstallCommand } from './uninstall.command';
 import { resetCommand } from './reset.command';
 import { scheduleSetCommand } from './schedule-set.command';
+import { setupOnboardingCommand } from './setup-onboarding.command';
 import { postponeCommand } from './postpone.command';
 import { registerCommand } from './register.command';
 import { profileCommand } from './profile.command';
@@ -37,6 +38,7 @@ export const commands = new Map<string, Command>([
   [uninstallCommand.data.name, uninstallCommand],
   [resetCommand.data.name, resetCommand],
   [scheduleSetCommand.data.name, scheduleSetCommand],
+  [setupOnboardingCommand.data.name, setupOnboardingCommand],
   [postponeCommand.data.name, postponeCommand],
   [registerCommand.data.name, registerCommand],
   [profileCommand.data.name, profileCommand],

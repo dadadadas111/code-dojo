@@ -49,7 +49,7 @@ const LEVEL_ROLE_COLORS: Record<number, number> = {
   6: 0xf1c40f, // Legend — gold
 };
 
-interface Ensured<T> {
+export interface Ensured<T> {
   entity: T;
   created: boolean;
 }
@@ -59,7 +59,7 @@ function describe<T extends { toString(): string }>(item: Ensured<T>): string {
 }
 
 /** Reuses the configured/like-named role if present, otherwise creates it. */
-async function ensureRole(
+export async function ensureRole(
   guild: Guild,
   name: string,
   color: number,
@@ -96,7 +96,7 @@ async function ensureCategory(guild: Guild): Promise<Ensured<CategoryChannel>> {
  * (re)applied even on reuse so re-running /setup converges on the intended
  * permission layout.
  */
-async function ensureTextChannel(
+export async function ensureTextChannel(
   guild: Guild,
   name: string,
   parentId: string,
