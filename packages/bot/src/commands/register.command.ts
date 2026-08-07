@@ -1,7 +1,27 @@
 import { SlashCommandBuilder } from 'discord.js';
-import type { ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction, Guild } from 'discord.js';
 import type { Command } from './index';
 import { ApiError, registerStudent } from '../utils/api-client';
+import { studentRoleId } from '../config/guild-config';
+
+/**
+ * Grants the Student role (unlocks the student bot-command channels).
+ * Never throws — a missing role or hierarchy problem must not fail /register.
+ */
+async function grantStudentRole(guild: Guild | null, discordId: string): Promise<boolean> {
+  const roleId = studentRoleId();
+  if (!guild || !roleId) return false;
+  try {
+    const member = await guild.members.fetch(discordId);
+    if (!member.roles.cache.has(roleId)) {
+      await member.roles.add(roleId, 'Code Dojo /register');
+    }
+    return true;
+  } catch (err) {
+    console.warn(`[Bot] Failed to grant Student role to ${discordId}:`, err);
+    return false;
+  }
+}
 
 export const registerCommand: Command = {
   data: new SlashCommandBuilder()
@@ -22,6 +42,7 @@ export const registerCommand: Command = {
 
     try {
       const student = await registerStudent(interaction.user.id, displayName);
+      const roleGranted = await grantStudentRole(interaction.guild, interaction.user.id);
       await interaction.reply({
         embeds: [
           {
@@ -33,7 +54,11 @@ export const registerCommand: Command = {
               { name: 'XP', value: String(student.xp), inline: true },
               { name: 'Coins', value: String(student.coins), inline: true },
             ],
-            footer: { text: 'Dùng /profile để xem hồ sơ của bạn' },
+            footer: {
+              text: roleGranted
+                ? 'Role Student đã được gán — các kênh lệnh bot đã mở cho bạn. Dùng /profile để xem hồ sơ.'
+                : 'Dùng /profile để xem hồ sơ của bạn',
+            },
           },
         ],
         ephemeral: false,

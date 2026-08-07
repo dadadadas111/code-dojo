@@ -23,6 +23,7 @@ const GUILD_ID = '111111111111111111';
 
 const FULL_BODY = {
   teacherRoleId: '222222222222222222',
+  studentRoleId: '666666666666666666',
   levelRoleIds: {
     '1': '333333333333333331',
     '2': '333333333333333332',
@@ -57,6 +58,7 @@ describe('PUT /api/guild-config/:guildId', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.guildId).toBe(GUILD_ID);
     expect(res.body.data.teacherRoleId).toBe(FULL_BODY.teacherRoleId);
+    expect(res.body.data.studentRoleId).toBe(FULL_BODY.studentRoleId);
     expect(res.body.data.levelRoleIds).toEqual(FULL_BODY.levelRoleIds);
     expect(res.body.data.levelupChannelId).toBe(FULL_BODY.levelupChannelId);
   });

@@ -293,6 +293,7 @@ export async function getMyAttendance(discordId: string): Promise<Attendance[]> 
 
 export interface GuildConfigInput {
   teacherRoleId?: string | null;
+  studentRoleId?: string | null;
   levelRoleIds?: Record<string, string>;
   levelupChannelId?: string | null;
 }

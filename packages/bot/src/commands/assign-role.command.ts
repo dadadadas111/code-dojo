@@ -3,10 +3,11 @@ import type { ChatInputCommandInteraction, Role } from 'discord.js';
 import { LEVEL_THRESHOLDS } from '@code-dojo/shared';
 import type { Command } from './index';
 import { isAdmin } from '../utils/permissions';
-import { teacherRoleId, levelRoleMap } from '../config/guild-config';
+import { teacherRoleId, studentRoleId, levelRoleMap } from '../config/guild-config';
 
 const ROLE_CHOICES = [
   { name: 'Teacher', value: 'teacher' },
+  { name: 'Student', value: 'student' },
   ...Object.entries(LEVEL_THRESHOLDS).map(([level, { title }]) => ({
     name: `Cấp ${level} — ${title}`,
     value: level,
@@ -53,9 +54,13 @@ export const assignRoleCommand: Command = {
     const targetUser = interaction.options.getUser('user', true);
     const roleKey = interaction.options.getString('role', true);
     const action = interaction.options.getString('action') ?? 'add';
-    const isLevelRole = roleKey !== 'teacher';
+    const isLevelRole = roleKey !== 'teacher' && roleKey !== 'student';
 
-    const roleId = isLevelRole ? (levelRoleMap()[roleKey] ?? null) : teacherRoleId();
+    const roleId = isLevelRole
+      ? (levelRoleMap()[roleKey] ?? null)
+      : roleKey === 'teacher'
+        ? teacherRoleId()
+        : studentRoleId();
     if (!roleId) {
       await interaction.reply({
         content: 'Role này chưa được cấu hình cho server. Chạy /setup trước.',

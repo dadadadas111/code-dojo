@@ -10,10 +10,14 @@ import { ApiError, fetchGuildConfig } from '../utils/api-client';
  * loadGuildConfig() and refreshed in place by /setup — no restart needed.
  */
 
-type StoredConfig = Pick<GuildConfig, 'teacherRoleId' | 'levelRoleIds' | 'levelupChannelId'>;
+type StoredConfig = Pick<
+  GuildConfig,
+  'teacherRoleId' | 'studentRoleId' | 'levelRoleIds' | 'levelupChannelId'
+>;
 
 let stored: StoredConfig = {
   teacherRoleId: null,
+  studentRoleId: null,
   levelRoleIds: {},
   levelupChannelId: null,
 };
@@ -41,9 +45,15 @@ export async function loadGuildConfig(guildId: string): Promise<boolean> {
 export function setGuildConfig(config: StoredConfig): void {
   stored = {
     teacherRoleId: config.teacherRoleId ?? null,
+    studentRoleId: config.studentRoleId ?? null,
     levelRoleIds: config.levelRoleIds ?? {},
     levelupChannelId: config.levelupChannelId ?? null,
   };
+}
+
+/** Stored-only (no env fallback) — the Student role concept arrived with /setup. */
+export function studentRoleId(): string | null {
+  return stored.studentRoleId;
 }
 
 export function teacherRoleId(): string | null {

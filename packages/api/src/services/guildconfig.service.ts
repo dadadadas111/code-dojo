@@ -9,6 +9,7 @@ function toGuildConfig(doc: mongoose.Document): GuildConfig {
 
 export interface UpsertGuildConfigInput {
   teacherRoleId?: string | null;
+  studentRoleId?: string | null;
   levelRoleIds?: Record<string, string>;
   levelupChannelId?: string | null;
 }

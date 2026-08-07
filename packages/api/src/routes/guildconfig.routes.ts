@@ -18,6 +18,7 @@ const guildIdParam = z.object({ guildId: z.string().min(1) });
 
 const upsertBody = z.object({
   teacherRoleId: z.string().min(1).nullable().optional(),
+  studentRoleId: z.string().min(1).nullable().optional(),
   levelRoleIds: z.record(z.string().min(1)).optional(),
   levelupChannelId: z.string().min(1).nullable().optional(),
 });

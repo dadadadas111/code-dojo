@@ -4,6 +4,7 @@ import type {
   ChatInputCommandInteraction,
   Guild,
   GuildMember,
+  OverwriteResolvable,
   Role,
   TextChannel,
 } from 'discord.js';
@@ -13,18 +14,27 @@ import { ApiError, saveGuildConfig } from '../utils/api-client';
 import {
   setGuildConfig,
   teacherRoleId,
+  studentRoleId,
   levelRoleMap,
   levelupChannelId,
 } from '../config/guild-config';
 
 // Exported so /uninstall can find and remove the same artifacts by name.
 export const TEACHER_ROLE_NAME = 'Teacher';
+export const STUDENT_ROLE_NAME = 'Student';
 export const CATEGORY_NAME = 'Code Dojo';
 export const LEVELUP_CHANNEL_NAME = 'level-up';
 // Classroom scaffold — created for convenience, not wired to any bot feature.
 export const EXTRA_CHANNEL_NAMES = ['thông-báo', 'bài-tập'];
+// Bot-command channels: register is open to everyone; the numbered ones are
+// student+teacher only; the gv one is teacher only. Admins see all (Discord
+// Administrator bypasses channel overwrites).
+export const REGISTER_CHANNEL_NAME = 'đăng-ký';
+export const STUDENT_BOT_CHANNEL_NAMES = ['lệnh-bot-1', 'lệnh-bot-2', 'lệnh-bot-3'];
+export const TEACHER_BOT_CHANNEL_NAME = 'gv-lệnh-bot';
 
 const TEACHER_ROLE_COLOR = 0xed4245;
+const STUDENT_ROLE_COLOR = 0x1abc9c;
 const LEVEL_ROLE_COLORS: Record<number, number> = {
   1: 0x95a5a6, // Beginner — gray
   2: 0x2ecc71, // Coder — green
@@ -75,29 +85,41 @@ async function ensureCategory(guild: Guild): Promise<Ensured<CategoryChannel>> {
   return { entity: category, created: true };
 }
 
-/** Reuses the configured/like-named text channel anywhere in the guild, otherwise creates it under the category. */
+/**
+ * Reuses the configured/like-named text channel anywhere in the guild,
+ * otherwise creates it under the category. When `overwrites` is given, it is
+ * (re)applied even on reuse so re-running /setup converges on the intended
+ * permission layout.
+ */
 async function ensureTextChannel(
   guild: Guild,
   name: string,
   parentId: string,
   preferredId: string | null,
+  overwrites?: OverwriteResolvable[],
 ): Promise<Ensured<TextChannel>> {
+  let existing: TextChannel | undefined;
   if (preferredId) {
-    const existing = guild.channels.cache.get(preferredId);
-    if (existing && existing.type === ChannelType.GuildText) {
-      return { entity: existing as TextChannel, created: false };
-    }
+    const byId = guild.channels.cache.get(preferredId);
+    if (byId && byId.type === ChannelType.GuildText) existing = byId as TextChannel;
   }
-  const byName = guild.channels.cache.find(
+  existing ??= guild.channels.cache.find(
     (channel) => channel.type === ChannelType.GuildText && channel.name === name,
   ) as TextChannel | undefined;
-  if (byName) return { entity: byName, created: false };
+
+  if (existing) {
+    if (overwrites) {
+      await existing.permissionOverwrites.set(overwrites, 'Code Dojo /setup');
+    }
+    return { entity: existing, created: false };
+  }
 
   const channel = await guild.channels.create({
     name,
     type: ChannelType.GuildText,
     parent: parentId,
     reason: 'Code Dojo /setup',
+    ...(overwrites ? { permissionOverwrites: overwrites } : {}),
   });
   return { entity: channel, created: true };
 }
@@ -152,6 +174,12 @@ export const setupCommand: Command = {
         TEACHER_ROLE_COLOR,
         teacherRoleId(),
       );
+      const student = await ensureRole(
+        guild,
+        STUDENT_ROLE_NAME,
+        STUDENT_ROLE_COLOR,
+        studentRoleId(),
+      );
 
       const existingLevelMap = levelRoleMap();
       const levelRoles: Array<{ level: number; title: string; result: Ensured<Role> }> = [];
@@ -178,8 +206,48 @@ export const setupCommand: Command = {
         extraChannels.push(await ensureTextChannel(guild, name, category.entity.id, null));
       }
 
+      // Bot-command channels with permission overwrites. Admins bypass all of
+      // these via the Administrator permission — no explicit grant needed.
+      const commandAllow = [
+        PermissionFlagsBits.ViewChannel,
+        PermissionFlagsBits.SendMessages,
+        PermissionFlagsBits.UseApplicationCommands,
+      ];
+      const studentAccess: OverwriteResolvable[] = [
+        { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] },
+        { id: student.entity.id, allow: commandAllow },
+        { id: teacher.entity.id, allow: commandAllow },
+        { id: me.id, allow: commandAllow },
+      ];
+      const teacherAccess: OverwriteResolvable[] = [
+        { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] },
+        { id: teacher.entity.id, allow: commandAllow },
+        { id: me.id, allow: commandAllow },
+      ];
+
+      const registerChannel = await ensureTextChannel(
+        guild,
+        REGISTER_CHANNEL_NAME,
+        category.entity.id,
+        null,
+      );
+      const studentBotChannels: Array<Ensured<TextChannel>> = [];
+      for (const name of STUDENT_BOT_CHANNEL_NAMES) {
+        studentBotChannels.push(
+          await ensureTextChannel(guild, name, category.entity.id, null, studentAccess),
+        );
+      }
+      const teacherBotChannel = await ensureTextChannel(
+        guild,
+        TEACHER_BOT_CHANNEL_NAME,
+        category.entity.id,
+        null,
+        teacherAccess,
+      );
+
       const savedConfig = await saveGuildConfig(guild.id, {
         teacherRoleId: teacher.entity.id,
+        studentRoleId: student.entity.id,
         levelRoleIds: Object.fromEntries(
           levelRoles.map(({ level, result }) => [String(level), result.entity.id]),
         ),
@@ -189,14 +257,19 @@ export const setupCommand: Command = {
       setGuildConfig(savedConfig);
 
       const warnings: string[] = [];
-      const unassignable = levelRoles.filter(
-        ({ result }) => me.roles.highest.comparePositionTo(result.entity) <= 0,
+      // The bot assigns these roles itself (level-ups, /register) — hierarchy matters.
+      const assignedByBot = [
+        ...levelRoles.map(({ title, result }) => ({ title, role: result.entity })),
+        { title: STUDENT_ROLE_NAME, role: student.entity },
+      ];
+      const unassignable = assignedByBot.filter(
+        ({ role }) => me.roles.highest.comparePositionTo(role) <= 0,
       );
       if (unassignable.length > 0) {
         warnings.push(
-          'Role của bot đang nằm **dưới** các role cấp độ ' +
+          'Role của bot đang nằm **dưới** các role ' +
             `(${unassignable.map(({ title }) => title).join(', ')}). ` +
-            'Vào Server Settings → Roles và kéo role của bot lên trên các role này, nếu không bot sẽ không gán được role khi học viên lên cấp.',
+            'Vào Server Settings → Roles và kéo role của bot lên trên các role này, nếu không bot sẽ không tự gán được role (khi /register và khi lên cấp).',
         );
       }
       warnings.push(
@@ -211,6 +284,11 @@ export const setupCommand: Command = {
             fields: [
               { name: 'Role giáo viên', value: describe(teacher), inline: false },
               {
+                name: 'Role học viên',
+                value: `${describe(student)} — tự gán khi \`/register\``,
+                inline: false,
+              },
+              {
                 name: 'Role cấp độ',
                 value: levelRoles
                   .map(({ level, result }) => `Cấp ${level}: ${describe(result)}`)
@@ -223,6 +301,16 @@ export const setupCommand: Command = {
                   `Danh mục **${CATEGORY_NAME}** ${category.created ? '(mới tạo)' : '(đã có)'}`,
                   `Kênh level-up: ${describe(levelupChannel)}`,
                   ...extraChannels.map((channel) => describe(channel)),
+                ].join('\n'),
+                inline: false,
+              },
+              {
+                name: 'Kênh lệnh bot',
+                value: [
+                  `${describe(registerChannel)} — mở cho mọi người (\`/register\`, \`/help\`)`,
+                  `${studentBotChannels.map((c) => describe(c)).join(', ')} — chỉ Student + Teacher`,
+                  `${describe(teacherBotChannel)} — chỉ Teacher`,
+                  '-# Admin thấy tất cả các kênh (quyền Administrator bỏ qua giới hạn kênh).',
                 ].join('\n'),
                 inline: false,
               },

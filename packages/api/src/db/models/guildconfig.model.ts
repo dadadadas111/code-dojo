@@ -3,6 +3,7 @@ import mongoose, { type Document, type Model } from 'mongoose';
 export interface GuildConfigDocument extends Document {
   guildId: string;
   teacherRoleId: string | null;
+  studentRoleId: string | null;
   levelRoleIds: Record<string, string>;
   levelupChannelId: string | null;
 }
@@ -11,6 +12,7 @@ const guildConfigSchema = new mongoose.Schema<GuildConfigDocument>(
   {
     guildId: { type: String, required: true, unique: true },
     teacherRoleId: { type: String, default: null },
+    studentRoleId: { type: String, default: null },
     // Plain object (level -> role ID) instead of a Mongoose Map so toJSON
     // needs no flattening; shape is enforced by route-level zod validation.
     levelRoleIds: { type: mongoose.Schema.Types.Mixed, default: {} },

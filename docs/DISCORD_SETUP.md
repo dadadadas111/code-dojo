@@ -43,7 +43,7 @@ Open the generated URL, pick your server, authorize.
 
 Enable **Developer Mode** (Discord Settings → Advanced → Developer Mode), right-click your server icon → **Copy Server ID** → `DISCORD_GUILD_ID` (used for *instant* slash-command registration in dev).
 
-That's the only ID you copy by hand. Roles and channels are created by the **`/setup`** command (step 6): the `Teacher` role, the 6 level roles (Beginner → Legend), and a **Code Dojo** category with `#level-up`, `#thông-báo`, `#bài-tập`. The IDs are saved to MongoDB via the API — no `.env` editing, no restart.
+That's the only ID you copy by hand. Roles and channels are created by the **`/setup`** command (step 6): the `Teacher` and `Student` roles (Student is auto-assigned on `/register`), the 6 level roles (Beginner → Legend), and a **Code Dojo** category with `#level-up`, `#thông-báo`, `#bài-tập` plus permission-gated bot-command channels — `#đăng-ký` open to everyone, `#lệnh-bot-1/2/3` visible only to Student+Teacher, and `#gv-lệnh-bot` Teacher-only (admins see everything). The IDs are saved to MongoDB via the API — no `.env` editing, no restart.
 
 > Manual override (optional): `TEACHER_ROLE_ID`, `LEVEL_ROLE_IDS`, `LEVELUP_CHANNEL_ID` in `.env` still work as a *fallback* for installs that never ran `/setup`. Stored config from `/setup` takes precedence.
 
@@ -91,7 +91,7 @@ Re-run `deploy-commands` whenever you add/rename a command.
 
 Run these as slash commands in your server. (`/help` shows this overview in Discord, grouped by role — students only see student commands.)
 
-0. **(Admin)** `/setup` — one-shot onboarding: creates the `Teacher` role, the 6 level roles, the **Code Dojo** category with `#level-up` / `#thông-báo` / `#bài-tập`, and saves all IDs to the database (idempotent — safe to re-run; it reuses anything that already exists). Then **assign the `Teacher` role to yourself** — the bot can't know who teaches.
+0. **(Admin)** `/setup` — one-shot onboarding: creates the `Teacher` + `Student` roles, the 6 level roles, the **Code Dojo** category with `#level-up` / `#thông-báo` / `#bài-tập`, and the gated bot-command channels (`#đăng-ký` public, `#lệnh-bot-1/2/3` Student+Teacher, `#gv-lệnh-bot` Teacher-only), then saves all IDs to the database (idempotent — safe to re-run; it reuses what exists and re-applies channel permissions). Then **assign the `Teacher` role to yourself** — the bot can't know who teaches.
 1. `/register` — creates your student profile.
 2. `/profile` — shows XP / Level / Coins (with the progress bar).
 3. **(Teacher)** `/course-create name:"Khoá TS 2026" description:"Intro" start_date:2026-07-10`

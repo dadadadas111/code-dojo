@@ -175,6 +175,8 @@ export interface ActivityLog {
 export interface GuildConfig {
   guildId: string;
   teacherRoleId: string | null;
+  /** Assigned automatically on /register; gates the student bot-command channels. */
+  studentRoleId: string | null;
   levelRoleIds: Record<string, string>;
   levelupChannelId: string | null;
 }

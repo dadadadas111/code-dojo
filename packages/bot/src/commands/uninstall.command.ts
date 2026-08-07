@@ -14,6 +14,7 @@ import { isAdmin } from '../utils/permissions';
 import {
   setGuildConfig,
   teacherRoleId,
+  studentRoleId,
   levelRoleMap,
   levelupChannelId,
 } from '../config/guild-config';
@@ -22,6 +23,10 @@ import {
   CATEGORY_NAME,
   EXTRA_CHANNEL_NAMES,
   LEVELUP_CHANNEL_NAME,
+  REGISTER_CHANNEL_NAME,
+  STUDENT_BOT_CHANNEL_NAMES,
+  STUDENT_ROLE_NAME,
+  TEACHER_BOT_CHANNEL_NAME,
   TEACHER_ROLE_NAME,
 } from './setup.command';
 
@@ -37,15 +42,12 @@ async function buildRemovalPlan(guild: Guild): Promise<RemovalPlan> {
   await guild.channels.fetch();
 
   const roleIds = new Set<string>();
-  const configuredTeacher = teacherRoleId();
-  if (configuredTeacher && guild.roles.cache.has(configuredTeacher)) {
-    roleIds.add(configuredTeacher);
-  }
-  for (const id of Object.values(levelRoleMap())) {
-    if (guild.roles.cache.has(id)) roleIds.add(id);
+  for (const id of [teacherRoleId(), studentRoleId(), ...Object.values(levelRoleMap())]) {
+    if (id && guild.roles.cache.has(id)) roleIds.add(id);
   }
   const roleNames = new Set([
     TEACHER_ROLE_NAME,
+    STUDENT_ROLE_NAME,
     ...Object.values(LEVEL_THRESHOLDS).map(({ title }) => title),
   ]);
   for (const role of guild.roles.cache.values()) {
@@ -57,7 +59,13 @@ async function buildRemovalPlan(guild: Guild): Promise<RemovalPlan> {
   if (configuredLevelup && guild.channels.cache.has(configuredLevelup)) {
     channelIds.add(configuredLevelup);
   }
-  const channelNames = new Set([LEVELUP_CHANNEL_NAME, ...EXTRA_CHANNEL_NAMES]);
+  const channelNames = new Set([
+    LEVELUP_CHANNEL_NAME,
+    REGISTER_CHANNEL_NAME,
+    TEACHER_BOT_CHANNEL_NAME,
+    ...STUDENT_BOT_CHANNEL_NAMES,
+    ...EXTRA_CHANNEL_NAMES,
+  ]);
   const category = guild.channels.cache.find(
     (c) => c.type === ChannelType.GuildCategory && c.name === CATEGORY_NAME,
   );
@@ -191,7 +199,12 @@ export const uninstallComponents: ComponentHandler = {
     let configCleared = false;
     try {
       await deleteGuildConfig(guild.id);
-      setGuildConfig({ teacherRoleId: null, levelRoleIds: {}, levelupChannelId: null });
+      setGuildConfig({
+        teacherRoleId: null,
+        studentRoleId: null,
+        levelRoleIds: {},
+        levelupChannelId: null,
+      });
       configCleared = true;
     } catch (err) {
       console.warn('[Bot] /uninstall: failed to delete guild config:', err);
