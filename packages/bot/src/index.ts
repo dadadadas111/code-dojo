@@ -38,9 +38,11 @@ client.on('guildMemberAdd', async (member) => {
   if (member.user.bot) return;
   try {
     const channelId = registerChannelId();
-    const channel = channelId
-      ? await member.guild.channels.fetch(channelId)
-      : member.guild.channels.cache.find((c) => c.isTextBased() && c.name === 'đăng-ký');
+    let channel = null;
+    if (channelId) {
+      channel = await member.guild.channels.fetch(channelId).catch(() => null);
+    }
+    channel ??= member.guild.channels.cache.find((c) => c.isTextBased() && c.name === 'đăng-ký');
     if (channel?.isTextBased()) {
       await greetNewMember(member, channel as never);
     }

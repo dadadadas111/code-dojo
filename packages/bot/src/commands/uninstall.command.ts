@@ -22,6 +22,8 @@ import { componentId, type ComponentHandler } from '../interactions/ids';
 import {
   CATEGORY_NAMES,
   EXTRA_CHANNEL_NAMES,
+  RESOURCE_CHANNEL_NAME,
+  VOICE_CHANNEL_NAMES,
   LEVELUP_CHANNEL_NAME,
   REGISTER_CHANNEL_NAME,
   STUDENT_BOT_CHANNEL_NAMES,
@@ -75,6 +77,8 @@ async function buildRemovalPlan(guild: Guild): Promise<RemovalPlan> {
     CHAT_CHANNEL_NAME,
     QA_CHANNEL_NAME,
     FLEX_CHANNEL_NAME,
+    RESOURCE_CHANNEL_NAME,
+    ...VOICE_CHANNEL_NAMES,
     ...STUDENT_BOT_CHANNEL_NAMES,
     ...EXTRA_CHANNEL_NAMES,
   ]);
@@ -82,7 +86,7 @@ async function buildRemovalPlan(guild: Guild): Promise<RemovalPlan> {
     .filter((c) => c.type === ChannelType.GuildCategory && CATEGORY_NAMES.includes(c.name))
     .map((c) => c.id);
   for (const channel of guild.channels.cache.values()) {
-    if (channel.type !== ChannelType.GuildText) continue;
+    if (channel.type !== ChannelType.GuildText && channel.type !== ChannelType.GuildVoice) continue;
     const inCategory = channel.parentId !== null && categoryIds.includes(channel.parentId);
     if (channelNames.has(channel.name) || inCategory) channelIds.add(channel.id);
   }

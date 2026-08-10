@@ -56,6 +56,8 @@ function buildRulesEmbeds(): EmbedBuilder[] {
         `💬 \`#${CHAT_CHANNEL_NAME}\` — chuyện trò tự do`,
         `❓ \`#${QA_CHANNEL_NAME}\` — hỏi bài, thảo luận kiến thức`,
         `🏆 \`#${FLEX_CHANNEL_NAME}\` — khoe điểm, khoe dự án, khoe streak`,
+        '📎 `#chia-sẻ-tài-nguyên` — link hay, tài liệu, tool hữu ích',
+        '🔊 Voice: `🎙️ Lớp Học` (buổi học), `🎙️ Tự Học`, `🎙️ Chill`',
       ].join('\n'),
     );
 
@@ -166,13 +168,13 @@ export const setupOnboardingCommand: Command = {
       const rulesChannel = await ensureTextChannel(
         guild,
         RULES_CHANNEL_NAME,
-        cats.start,
+        cats.announce,
         null,
         feedAccess,
       );
-      const chat = await ensureTextChannel(guild, CHAT_CHANNEL_NAME, cats.community, null);
+      const chat = await ensureTextChannel(guild, CHAT_CHANNEL_NAME, cats.chat, null);
       const qa = await ensureTextChannel(guild, QA_CHANNEL_NAME, cats.study, null);
-      const flex = await ensureTextChannel(guild, FLEX_CHANNEL_NAME, cats.community, null);
+      const flex = await ensureTextChannel(guild, FLEX_CHANNEL_NAME, cats.chat, null);
 
       // 2. Enable Community if missing (needs Administrator; else guide the user).
       let communityNote = '';
@@ -220,16 +222,24 @@ export const setupOnboardingCommand: Command = {
       const studentChannels = guild.channels.cache
         .filter((c) => /^lệnh-bot-\d$/.test(c.name))
         .map((c) => c.id);
+      const resource = guild.channels.cache.find(
+        (c) => c.isTextBased() && c.name === 'chia-sẻ-tài-nguyên',
+      );
+      // Filter against the live cache — stored IDs can be stale if channels
+      // were hand-deleted; a dead ID would 400 the whole onboarding call.
       const openIds = [
-        registerChannelId(),
         homeworkChannelId(),
+        resource?.id ?? null,
         chat.entity.id,
         qa.entity.id,
         flex.entity.id,
-      ].filter((id): id is string => Boolean(id));
-      const readOnlyIds = [announceChannelId(), levelupChannelId(), rulesChannel.entity.id].filter(
-        (id): id is string => Boolean(id),
-      );
+      ].filter((id): id is string => Boolean(id) && guild.channels.cache.has(id!));
+      const readOnlyIds = [
+        registerChannelId(),
+        announceChannelId(),
+        levelupChannelId(),
+        rulesChannel.entity.id,
+      ].filter((id): id is string => Boolean(id) && guild.channels.cache.has(id!));
 
       await guild.editOnboarding({
         enabled: true,

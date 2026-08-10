@@ -7,6 +7,7 @@ import type {
   OverwriteResolvable,
   Role,
   TextChannel,
+  VoiceChannel,
 } from 'discord.js';
 import { LEVEL_THRESHOLDS } from '@code-dojo/shared';
 import type { Command } from './index';
@@ -26,19 +27,22 @@ import { buildStandingWelcome, WELCOME_PIN_TITLE } from '../interactions/welcome
 // Exported so /uninstall can find and remove the same artifacts by name.
 export const TEACHER_ROLE_NAME = 'Teacher';
 export const STUDENT_ROLE_NAME = 'Student';
-// Legacy single category (pre-restructure installs); still cleaned up by /uninstall
-// and emptied+deleted when /setup migrates channels to the categories below.
-export const CATEGORY_NAME = 'Code Dojo';
-export const CATEGORY_START = '👋 Bắt Đầu';
+// Type-based category taxonomy: a category names WHAT KIND of channel lives in it.
+export const CATEGORY_ANNOUNCE = '📢 Thông Báo';
 export const CATEGORY_STUDY = '📚 Học Tập';
-export const CATEGORY_COMMUNITY = '💬 Cộng Đồng';
+export const CATEGORY_CHAT = '💬 Trò Chuyện';
+export const CATEGORY_VOICE = '🔊 Voice';
 export const CATEGORY_TEACHER = '🧑‍🏫 Giáo Viên';
+// Older layouts (single "Code Dojo", journey-based v2) — emptied + deleted on
+// /setup re-runs, and swept by /uninstall.
+export const LEGACY_CATEGORY_NAMES = ['Code Dojo', '👋 Bắt Đầu', '💬 Cộng Đồng'];
 export const CATEGORY_NAMES = [
-  CATEGORY_START,
+  CATEGORY_ANNOUNCE,
   CATEGORY_STUDY,
-  CATEGORY_COMMUNITY,
+  CATEGORY_CHAT,
+  CATEGORY_VOICE,
   CATEGORY_TEACHER,
-  CATEGORY_NAME,
+  ...LEGACY_CATEGORY_NAMES,
 ];
 export const LEVELUP_CHANNEL_NAME = 'level-up';
 export const ANNOUNCE_CHANNEL_NAME = 'thông-báo';
@@ -48,8 +52,10 @@ export const EXTRA_CHANNEL_NAMES = [ANNOUNCE_CHANNEL_NAME, HOMEWORK_CHANNEL_NAME
 // student+teacher only; the gv one is teacher only. Admins see all (Discord
 // Administrator bypasses channel overwrites).
 export const REGISTER_CHANNEL_NAME = 'đăng-ký';
+export const RESOURCE_CHANNEL_NAME = 'chia-sẻ-tài-nguyên';
 export const STUDENT_BOT_CHANNEL_NAMES = ['lệnh-bot-1', 'lệnh-bot-2', 'lệnh-bot-3'];
 export const TEACHER_BOT_CHANNEL_NAME = 'gv-lệnh-bot';
+export const VOICE_CHANNEL_NAMES = ['🎙️ Lớp Học', '🎙️ Tự Học', '🎙️ Chill'];
 
 const TEACHER_ROLE_COLOR = 0xed4245;
 const STUDENT_ROLE_COLOR = 0x1abc9c;
@@ -112,9 +118,10 @@ async function ensureCategory(
 }
 
 export interface CategoryIds {
-  start: string;
+  announce: string;
   study: string;
-  community: string;
+  chat: string;
+  voice: string;
   teacher: string;
 }
 
@@ -132,12 +139,20 @@ export async function ensureCategories(
     { id: teacherId, allow: [PermissionFlagsBits.ViewChannel] },
     { id: botId, allow: [PermissionFlagsBits.ViewChannel] },
   ];
-  const start = await ensureCategory(guild, CATEGORY_START);
+  // Announce category is read-only at category level: any channel dropped in
+  // becomes a feed by default (channels re-apply their own overwrites anyway).
+  const announceOnly: OverwriteResolvable[] = [
+    { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.SendMessages] },
+    { id: teacherId, allow: [PermissionFlagsBits.SendMessages] },
+    { id: botId, allow: [PermissionFlagsBits.SendMessages] },
+  ];
+  const announce = await ensureCategory(guild, CATEGORY_ANNOUNCE, announceOnly);
   const study = await ensureCategory(guild, CATEGORY_STUDY);
-  const community = await ensureCategory(guild, CATEGORY_COMMUNITY);
+  const chat = await ensureCategory(guild, CATEGORY_CHAT);
+  const voice = await ensureCategory(guild, CATEGORY_VOICE);
   const teacher = await ensureCategory(guild, CATEGORY_TEACHER, teacherOnly);
 
-  const order = [start, study, community, teacher];
+  const order = [announce, study, chat, voice, teacher];
   for (let i = 0; i < order.length; i++) {
     try {
       await order[i]!.entity.setPosition(i);
@@ -146,27 +161,69 @@ export async function ensureCategories(
     }
   }
   return {
-    start: start.entity.id,
+    announce: announce.entity.id,
     study: study.entity.id,
-    community: community.entity.id,
+    chat: chat.entity.id,
+    voice: voice.entity.id,
     teacher: teacher.entity.id,
   };
 }
 
-/** Deletes the legacy single category once /setup has emptied it. */
-export async function cleanupLegacyCategory(guild: Guild): Promise<boolean> {
-  const legacy = guild.channels.cache.find(
-    (c) => c.type === ChannelType.GuildCategory && c.name === CATEGORY_NAME,
-  ) as CategoryChannel | undefined;
-  if (!legacy) return false;
-  const hasChildren = guild.channels.cache.some((c) => c.parentId === legacy.id);
-  if (hasChildren) return false;
-  try {
-    await legacy.delete('Code Dojo /setup — migrated to multi-category layout');
-    return true;
-  } catch {
-    return false;
+/** Voice room: find by name (any category) or create in the voice category. */
+export async function ensureVoiceChannel(
+  guild: Guild,
+  name: string,
+  parentId: string,
+): Promise<Ensured<VoiceChannel>> {
+  const existing = guild.channels.cache.find(
+    (c) => c.type === ChannelType.GuildVoice && c.name === name,
+  ) as VoiceChannel | undefined;
+  if (existing) {
+    if (existing.parentId !== parentId) {
+      await existing.setParent(parentId, { lockPermissions: false });
+    }
+    return { entity: existing, created: false };
   }
+  const channel = await guild.channels.create({
+    name,
+    type: ChannelType.GuildVoice,
+    parent: parentId,
+    reason: 'Code Dojo /setup',
+  });
+  return { entity: channel, created: true };
+}
+
+/** Best-effort intra-category ordering; Discord treats position loosely. */
+export async function orderChannels(guild: Guild, ids: string[]): Promise<void> {
+  for (let i = 0; i < ids.length; i++) {
+    const channel = guild.channels.cache.get(ids[i]!);
+    if (!channel || channel.type === ChannelType.GuildCategory) continue;
+    try {
+      await (channel as TextChannel).setPosition(i);
+    } catch {
+      // cosmetic only
+    }
+  }
+}
+
+/** Deletes emptied categories from older layouts. Returns how many were removed. */
+export async function cleanupLegacyCategory(guild: Guild): Promise<number> {
+  let removed = 0;
+  for (const name of LEGACY_CATEGORY_NAMES) {
+    const legacy = guild.channels.cache.find(
+      (c) => c.type === ChannelType.GuildCategory && c.name === name,
+    ) as CategoryChannel | undefined;
+    if (!legacy) continue;
+    const hasChildren = guild.channels.cache.some((c) => c.parentId === legacy.id);
+    if (hasChildren) continue;
+    try {
+      await legacy.delete('Code Dojo /setup — migrated to type-based layout');
+      removed++;
+    } catch {
+      // leave it; /uninstall will sweep
+    }
+  }
+  return removed;
 }
 
 /**
@@ -309,14 +366,14 @@ export const setupCommand: Command = {
       const levelupChannel = await ensureTextChannel(
         guild,
         LEVELUP_CHANNEL_NAME,
-        cats.community,
+        cats.announce,
         levelupChannelId(),
         feedAccess,
       );
       const announceChannel = await ensureTextChannel(
         guild,
         ANNOUNCE_CHANNEL_NAME,
-        cats.start,
+        cats.announce,
         announceChannelId(),
         feedAccess,
       );
@@ -326,6 +383,14 @@ export const setupCommand: Command = {
         HOMEWORK_CHANNEL_NAME,
         cats.study,
         homeworkChannelId(),
+      );
+      // Open study channel for sharing links/docs (also counts toward Discord's
+      // onboarding "5 sendable channels" constraint).
+      const resourceChannel = await ensureTextChannel(
+        guild,
+        RESOURCE_CHANNEL_NAME,
+        cats.study,
+        null,
       );
 
       // Bot-command channels with permission overwrites. Admins bypass all of
@@ -347,11 +412,13 @@ export const setupCommand: Command = {
         { id: me.id, allow: commandAllow },
       ];
 
+      // Read-only: the bot greets and the pinned button does the work — no chat noise.
       const registerChannel = await ensureTextChannel(
         guild,
         REGISTER_CHANNEL_NAME,
-        cats.start,
+        cats.announce,
         registerChannelId(),
+        feedAccess,
       );
       await ensureStandingWelcome(registerChannel.entity);
       const studentBotChannels: Array<Ensured<TextChannel>> = [];
@@ -368,7 +435,24 @@ export const setupCommand: Command = {
         teacherAccess,
       );
 
-      // Old single-category installs: everything has been re-homed above.
+      const voiceChannels: Array<Ensured<VoiceChannel>> = [];
+      for (const name of VOICE_CHANNEL_NAMES) {
+        voiceChannels.push(await ensureVoiceChannel(guild, name, cats.voice));
+      }
+
+      // Sensible in-category order (best-effort).
+      await orderChannels(guild, [
+        registerChannel.entity.id,
+        announceChannel.entity.id,
+        levelupChannel.entity.id,
+      ]);
+      await orderChannels(guild, [
+        homeworkChannel.entity.id,
+        resourceChannel.entity.id,
+        ...studentBotChannels.map((c) => c.entity.id),
+      ]);
+
+      // Older layouts: everything has been re-homed above; drop emptied categories.
       const legacyRemoved = await cleanupLegacyCategory(guild);
 
       const savedConfig = await saveGuildConfig(guild.id, {
@@ -427,13 +511,12 @@ export const setupCommand: Command = {
               {
                 name: 'Cấu trúc kênh',
                 value: [
-                  `**${CATEGORY_START}**: ${describe(registerChannel)}, ${describe(announceChannel)}`,
-                  `**${CATEGORY_STUDY}**: ${describe(homeworkChannel)}, ${studentBotChannels.map((c) => describe(c)).join(', ')}`,
-                  `**${CATEGORY_COMMUNITY}**: ${describe(levelupChannel)}`,
+                  `**${CATEGORY_ANNOUNCE}** (chỉ đọc): ${describe(registerChannel)}, ${describe(announceChannel)}, ${describe(levelupChannel)}`,
+                  `**${CATEGORY_STUDY}**: ${describe(homeworkChannel)}, ${describe(resourceChannel)}, ${studentBotChannels.map((c) => describe(c)).join(', ')}`,
+                  `**${CATEGORY_CHAT}**: tán-gẫu, khoe-thành-tích (tạo bởi /setup-onboarding)`,
+                  `**${CATEGORY_VOICE}**: ${voiceChannels.map((c) => describe(c)).join(', ')}`,
                   `**${CATEGORY_TEACHER}** (ẩn với học sinh): ${describe(teacherBotChannel)}`,
-                  legacyRemoved
-                    ? '-# Đã xoá danh mục "Code Dojo" cũ (kênh đã dọn về đúng chỗ).'
-                    : '',
+                  legacyRemoved > 0 ? `-# Đã xoá ${legacyRemoved} danh mục layout cũ.` : '',
                 ]
                   .filter(Boolean)
                   .join('\n'),
@@ -450,7 +533,7 @@ export const setupCommand: Command = {
               {
                 name: 'Quyền kênh',
                 value: [
-                  `${describe(registerChannel)} mở cho mọi người · \`lệnh-bot-*\` chỉ Student+Teacher · feed (${ANNOUNCE_CHANNEL_NAME}, ${LEVELUP_CHANNEL_NAME}) chỉ đọc`,
+                  `Cả nhóm **${CATEGORY_ANNOUNCE}** chỉ đọc (bấm nút vẫn hoạt động) · \`lệnh-bot-*\` chỉ Student+Teacher · voice mở cho mọi người`,
                   '-# Admin thấy tất cả (quyền Administrator bỏ qua giới hạn kênh).',
                 ].join('\n'),
                 inline: false,
