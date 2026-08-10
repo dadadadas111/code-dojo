@@ -7,7 +7,6 @@ import {
 } from 'discord.js';
 import type {
   ChatInputCommandInteraction,
-  Guild,
   GuildMember,
   OverwriteResolvable,
   TextChannel,
@@ -22,7 +21,7 @@ import {
   registerChannelId,
   levelupChannelId,
 } from '../config/guild-config';
-import { ensureRole, ensureTextChannel, CATEGORY_NAME } from './setup.command';
+import { ensureRole, ensureTextChannel, ensureCategories } from './setup.command';
 import { welcomeButtons } from '../interactions/welcome';
 
 // Community channels (open chat unless noted). Exported for /uninstall.
@@ -110,13 +109,6 @@ async function ensurePinnedRules(
   await message.pin();
 }
 
-function findCategoryId(guild: Guild): string | null {
-  const category = guild.channels.cache.find(
-    (c) => c.type === 4 && c.name === CATEGORY_NAME, // 4 = GuildCategory
-  );
-  return category?.id ?? null;
-}
-
 export const setupOnboardingCommand: Command = {
   data: new SlashCommandBuilder()
     .setName('setup-onboarding')
@@ -162,10 +154,10 @@ export const setupOnboardingCommand: Command = {
     try {
       await guild.channels.fetch();
       await guild.roles.fetch();
-      const categoryId = findCategoryId(guild) ?? '';
 
-      // 1. Community channels. Rules channel is a read-only feed.
+      // 1. Community channels in their proper categories. Rules = read-only feed.
       const teacherId = teacherRoleId()!;
+      const cats = await ensureCategories(guild, teacherId, me.id);
       const feedAccess: OverwriteResolvable[] = [
         { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.SendMessages] },
         { id: teacherId, allow: [PermissionFlagsBits.SendMessages] },
@@ -174,13 +166,13 @@ export const setupOnboardingCommand: Command = {
       const rulesChannel = await ensureTextChannel(
         guild,
         RULES_CHANNEL_NAME,
-        categoryId,
+        cats.start,
         null,
         feedAccess,
       );
-      const chat = await ensureTextChannel(guild, CHAT_CHANNEL_NAME, categoryId, null);
-      const qa = await ensureTextChannel(guild, QA_CHANNEL_NAME, categoryId, null);
-      const flex = await ensureTextChannel(guild, FLEX_CHANNEL_NAME, categoryId, null);
+      const chat = await ensureTextChannel(guild, CHAT_CHANNEL_NAME, cats.community, null);
+      const qa = await ensureTextChannel(guild, QA_CHANNEL_NAME, cats.study, null);
+      const flex = await ensureTextChannel(guild, FLEX_CHANNEL_NAME, cats.community, null);
 
       // 2. Enable Community if missing (needs Administrator; else guide the user).
       let communityNote = '';

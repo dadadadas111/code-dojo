@@ -20,7 +20,7 @@ import {
 } from '../config/guild-config';
 import { componentId, type ComponentHandler } from '../interactions/ids';
 import {
-  CATEGORY_NAME,
+  CATEGORY_NAMES,
   EXTRA_CHANNEL_NAMES,
   LEVELUP_CHANNEL_NAME,
   REGISTER_CHANNEL_NAME,
@@ -40,7 +40,7 @@ import {
 interface RemovalPlan {
   roleIds: string[];
   channelIds: string[];
-  categoryId: string | null;
+  categoryIds: string[];
 }
 
 /** Collects everything /setup manages: configured IDs first, then name-based fallbacks. */
@@ -78,19 +78,19 @@ async function buildRemovalPlan(guild: Guild): Promise<RemovalPlan> {
     ...STUDENT_BOT_CHANNEL_NAMES,
     ...EXTRA_CHANNEL_NAMES,
   ]);
-  const category = guild.channels.cache.find(
-    (c) => c.type === ChannelType.GuildCategory && c.name === CATEGORY_NAME,
-  );
+  const categoryIds = guild.channels.cache
+    .filter((c) => c.type === ChannelType.GuildCategory && CATEGORY_NAMES.includes(c.name))
+    .map((c) => c.id);
   for (const channel of guild.channels.cache.values()) {
     if (channel.type !== ChannelType.GuildText) continue;
-    const inCategory = category !== undefined && channel.parentId === category.id;
+    const inCategory = channel.parentId !== null && categoryIds.includes(channel.parentId);
     if (channelNames.has(channel.name) || inCategory) channelIds.add(channel.id);
   }
 
   return {
     roleIds: [...roleIds],
     channelIds: [...channelIds],
-    categoryId: category?.id ?? null,
+    categoryIds,
   };
 }
 
@@ -115,7 +115,7 @@ export const uninstallCommand: Command = {
     }
 
     const plan = await buildRemovalPlan(guild);
-    const total = plan.roleIds.length + plan.channelIds.length + (plan.categoryId ? 1 : 0);
+    const total = plan.roleIds.length + plan.channelIds.length + plan.categoryIds.length;
     if (total === 0) {
       await interaction.reply({
         content:
@@ -135,7 +135,7 @@ export const uninstallCommand: Command = {
             'Các mục sau sẽ bị **xoá vĩnh viễn** khỏi server:',
             `- ${plan.roleIds.length} role: ${plan.roleIds.map((id) => `<@&${id}>`).join(', ')}`,
             `- ${plan.channelIds.length} kênh: ${plan.channelIds.map((id) => `<#${id}>`).join(', ')}`,
-            plan.categoryId ? `- Danh mục **${CATEGORY_NAME}**` : '',
+            plan.categoryIds.length > 0 ? `- ${plan.categoryIds.length} danh mục (category)` : '',
             '- Cấu hình server đã lưu (chạy `/setup` để tạo lại)',
             '',
             '-# Dữ liệu lớp học (học viên, bài nộp...) KHÔNG bị xoá — dùng `/reset` cho việc đó.',
@@ -191,12 +191,12 @@ export const uninstallComponents: ComponentHandler = {
         failures.push(`kênh <#${id}>`);
       }
     }
-    if (plan.categoryId) {
+    for (const id of plan.categoryIds) {
       try {
-        await guild.channels.delete(plan.categoryId, 'Code Dojo /uninstall');
+        await guild.channels.delete(id, 'Code Dojo /uninstall');
         removed++;
       } catch {
-        failures.push(`danh mục ${CATEGORY_NAME}`);
+        failures.push(`danh mục <#${id}>`);
       }
     }
     for (const id of plan.roleIds) {
